@@ -64,9 +64,6 @@
     }
 
     return {
-      unitSum: unitSum,
-      gpSum: gpSum,
-      gpa: gpa,
       grades: grades,
     };
   };
@@ -110,7 +107,7 @@
       console.log(JSON.stringify(jsonObj));
 
       const jwtToken = window.prompt('成績登録トークンを入力してください。');
-      const backendUrl = 'https://hogehoge.com';
+      const backendUrl = 'https://example.com';
       const resp = await postJson(backendUrl, jsonObj);
       if (!resp.ok) {
         switch (resp.status) {
