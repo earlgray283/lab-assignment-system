@@ -52,13 +52,7 @@
     }
 
     const grades = new Array(0);
-    let unitSum = Number(0);
-    let gpSum = Number(0);
     for (const tr of Array.from(trList).slice(1)) {
-      const grade = tr.querySelector('td:nth-child(6)').textContent.trim();
-      if (grade === '不可' || grade === '合') {
-        continue;
-      }
       const unitNum = Number(
         tr.querySelector('td:nth-child(5)').textContent.trim()
       );
@@ -67,11 +61,7 @@
         .querySelector('td:nth-child(10)')
         .textContent.trim();
       grades.push({ unitNum: unitNum, gp: gp, reportedAt: reportedAt });
-
-      unitSum += unitNum;
-      gpSum += gp * unitNum;
     }
-    const gpa = gpSum / unitSum;
 
     return {
       unitSum: unitSum,
@@ -93,7 +83,7 @@
     });
   };
 
-  (async function () {
+  const scrapeGrades = async () => {
     const currentUrl = window.location.href;
     const resp = await fetch(currentUrl);
     if (!resp.ok) {
@@ -103,17 +93,42 @@
     }
     const tmpElem = document.createElement('div');
     tmpElem.innerHTML = await resp.text();
-    console.log(tmpElem);
     const gradeObj = await scrapeGradesTable(tmpElem);
     const studentInfo = await scrapeStudentInfo(tmpElem);
     let jsonObj = gradeObj;
     jsonObj.studentName = studentInfo.studentName;
     jsonObj.studentNumber = studentInfo.studentNumber;
+    return jsonObj;
+  };
 
-    const backendUrl = 'https://hogehoge.com';
-    console.log(JSON.stringify(jsonObj));
-    //await postJson(backendUrl, jsonObj);
-  })().catch((e) => {
-    console.error(e);
-  });
+  const form = document.querySelector('form[name=SeisekiStudentForm]');
+  const btn = document.createElement('button');
+  btn.textContent = '成績情報を送信する';
+  btn.onclick = async () => {
+    try {
+      const jsonObj = await scrapeGrades();
+      console.log(JSON.stringify(jsonObj));
+
+      const jwtToken = window.prompt('成績登録トークンを入力してください。');
+      const backendUrl = 'https://hogehoge.com';
+      const resp = await postJson(backendUrl, jsonObj);
+      if (!resp.ok) {
+        switch (resp.status) {
+          case 400:
+            alert('成績データの形式が正しくありません');
+            break;
+          case 401:
+            alert('成績登録トークンが正しくありません');
+            break;
+          default:
+            alert('原因不明のエラーが発生しました');
+        }
+      } else {
+        alert('成績の登録に成功しました');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+  form.parentElement.insertBefore(btn, form.nextSibling);
 })();
