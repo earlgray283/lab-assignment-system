@@ -3,12 +3,13 @@ package server
 import (
 	"context"
 	"errors"
+	"lab-assignment-system-backend/repository"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
+	"cloud.google.com/go/datastore"
 	"firebase.google.com/go/auth"
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,9 @@ type SignupForm struct {
 	StudentNumber int    `json:"studentNumber,omitempty"`
 	Name          string `json:"name,omitempty"`
 	IdToken       string `json:"idToken,omitempty"`
+	Lab1          string `json:"lab1,omitempty"`
+	Lab2          string `json:"lab2,omitempty"`
+	Lab3          string `json:"lab3,omitempty"`
 }
 
 type SigninForm struct {
@@ -45,22 +49,34 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 			_ = c.AbortWithError(http.StatusBadRequest, errors.New("invalid email or password"))
 			return
 		}
-
 		token, err := srv.auth.VerifyIDToken(ctx, signupForm.IdToken)
 		if err != nil {
 			srv.logger.Println(err)
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("Invalid IdToken"))
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
-		if err := srv.auth.SetCustomUserClaims(ctx, token.UID, map[string]interface{}{
-			"studentNumber": strconv.Itoa(signupForm.StudentNumber),
-			"name":          signupForm.Name,
+		userdata, _ := srv.auth.GetUser(ctx, token.UID)
+		user := &repository.User{
+			UID:           userdata.UID,
+			Email:         userdata.Email,
+			StudentNumber: signupForm.StudentNumber,
+			Name:          signupForm.Name,
+			Lab1:          signupForm.Lab1,
+			Lab2:          signupForm.Lab2,
+			Lab3:          signupForm.Lab3,
+			CreatedAt:     time.Now(),
+		}
+		key := repository.NewUserKey(user.UID)
+		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
+			if _, err := tx.Put(key, user); err != nil {
+				return err
+			}
+			return nil
 		}); err != nil {
 			srv.logger.Println(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-
 		sessionCookie, err := makeSessionCookie(ctx, srv.auth, signupForm.IdToken)
 		if err != nil {
 			srv.logger.Println(err)

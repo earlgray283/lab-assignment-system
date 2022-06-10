@@ -8,14 +8,23 @@ import (
 
 	"cloud.google.com/go/datastore"
 	firebase "firebase.google.com/go"
+	"github.com/joho/godotenv"
 )
 
 const ProjectId = "lab-assignment-system"
 
+func init() {
+	if os.Getenv("FRONT_URL") == "" {
+		if err := godotenv.Load(".env"); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
 func main() {
-	frontendUrl := os.Getenv("FRONTEND_URL")
+	frontendUrl := os.Getenv("FRONT_URL")
 	if frontendUrl == "" {
-		log.Fatal("environmental value FRONTEND_URL must be set")
+		log.Fatal("environmental value FRONT_URL must be set")
 	}
 	dc, err := datastore.NewClient(context.Background(), ProjectId)
 	if err != nil {

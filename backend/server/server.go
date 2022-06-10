@@ -28,5 +28,5 @@ func New(dc *datastore.Client, auth *auth.Client, frontendUrl string) *Server {
 }
 
 func (srv *Server) Run(addr ...string) error {
-	return srv.Run(addr...)
+	return srv.r.Run(addr...)
 }
