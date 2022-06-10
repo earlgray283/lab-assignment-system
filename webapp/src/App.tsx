@@ -1,4 +1,4 @@
-import { Box, CssBaseline } from '@mui/material';
+import { Box, CssBaseline, LinearProgress } from '@mui/material';
 import { getAuth, User } from 'firebase/auth';
 import React, { createContext, useEffect, useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
@@ -7,25 +7,36 @@ import Dashboard from './pages/Dashboard';
 import Signin from './pages/Signin';
 import Signup from './pages/Signup';
 
-export const UserContext = createContext<User | null>(null);
+interface UserContextType {
+  currentUser: User | null;
+  loading: boolean;
+}
+
+export const UserContext = createContext<UserContextType>({
+  currentUser: null,
+  loading: true,
+});
 
 function App(): JSX.Element {
-  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const auth = getAuth();
 
   useEffect(() => {
-    auth.onAuthStateChanged((currentUser) => {
-      setUser(currentUser);
+    auth.onAuthStateChanged((user) => {
+      setLoading(false);
+      setCurrentUser(user);
     });
   }, []);
 
   return (
-    <UserContext.Provider value={user}>
+    <UserContext.Provider value={{ currentUser, loading }}>
       {/* reset css */}
       <CssBaseline />
 
       <BrowserRouter>
         <Appbar />
+        {loading && <LinearProgress />}
         <Box
           sx={{
             display: 'flex',

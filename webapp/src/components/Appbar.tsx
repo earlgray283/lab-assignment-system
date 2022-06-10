@@ -19,9 +19,12 @@ export function Appbar(): JSX.Element {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          <TypographyLink to='/auth/signin'>
-            {user ? user.displayName : 'SIGN IN'}
-          </TypographyLink>
+          {!user.loading &&
+            (user.currentUser ? (
+              user.currentUser.displayName ?? '<名前未設定>'
+            ) : (
+              <TypographyLink to='/auth/signin'>SIGN IN</TypographyLink>
+            ))}
         </Toolbar>
       </AppBar>
     </Box>

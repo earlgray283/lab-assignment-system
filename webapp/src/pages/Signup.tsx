@@ -3,9 +3,11 @@ import {
   createUserWithEmailAndPassword,
   getAuth,
   sendEmailVerification,
+  updateProfile,
 } from 'firebase/auth';
 import { DefaultLayout } from '../components/layout';
-import { SignupForm, SignupFormInput } from '../components/form';
+import { SignupForm, SignupFormInput } from '../components/forms';
+import { postJson } from '../lib/axios';
 
 function Signup(): JSX.Element {
   const auth = getAuth();
@@ -17,6 +19,11 @@ function Signup(): JSX.Element {
         data.email,
         data.password
       );
+      await updateProfile(credential.user, {
+        displayName: `(${data.studentNumber})${data.name}`,
+      });
+      data.idToken = await credential.user.getIdToken();
+      await postJson('/auth/signup', data);
       await sendEmailVerification(credential.user, {
         url: `${import.meta.env.VITE_HOST}`,
       });

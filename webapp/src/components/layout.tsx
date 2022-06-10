@@ -18,3 +18,17 @@ export function DefaultLayout(props: { children?: ReactNode }): JSX.Element {
     </Box>
   );
 }
+
+export function FullLayout(props: { children?: ReactNode }): JSX.Element {
+  return (
+    <Box
+      margin='10px 0px 0px 0px'
+      width='95%'
+      maxWidth='900px'
+      boxShadow={2}
+      padding='20px'
+    >
+      {props.children}
+    </Box>
+  );
+}

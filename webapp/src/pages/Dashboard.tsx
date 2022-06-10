@@ -1,19 +1,36 @@
 import { useContext, useEffect } from 'react';
 import { UserContext } from '../App';
-import { DefaultLayout } from '../components/layout';
+import { FullLayout } from '../components/layout';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Alert, Stack } from '@mui/material';
+import GpaCard from '../components/cards/GpaCard';
 
 function Dashboard(): JSX.Element {
   const user = useContext(UserContext);
   const navigate = useNavigate();
   useEffect(() => {
-    if (user === null) {
+    if (!user.loading && user.currentUser === null) {
       navigate('/auth/signin');
     }
-  }, [navigate]);
+  }, [user]);
+  if (!user.currentUser) {
+    return <div />; // /auth/signin にリダイレクトされることが保証される
+  }
 
-  return <DefaultLayout>s</DefaultLayout>;
+  return (
+    <FullLayout>
+      <Stack spacing={2}>
+        {user.currentUser?.emailVerified && (
+          <Alert severity='error'>
+            {user.currentUser.email}{' '}
+            宛に確認リンクを送信しました。メールアドレスの確認をしてください
+          </Alert>
+        )}
+        <GpaCard data={[1, 2, 3, 4, 3, 2, 1, 0]} />
+      </Stack>
+    </FullLayout>
+  );
 }
 
 export default Dashboard;

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { DefaultLayout } from '../components/layout';
-import { SigninForm, SigninFormInput } from '../components/form';
+import { SigninForm, SigninFormInput } from '../components/forms';
 
 function Signin(): JSX.Element {
   const auth = getAuth();
