@@ -15,9 +15,8 @@ export interface SignupFormInput {
   email: string;
   password: string;
   confirmPassword: string;
-  studentNumber: number;
+  studentNumber: string;
   name: string;
-  idToken: string;
   lab1: string;
   lab2: string;
   lab3: string;
@@ -44,6 +43,10 @@ export function SignupForm(props: {
       </Typography>
 
       <Stack spacing={2} width='90%' display='flex' flexDirection='column'>
+        {props.errorMessage && (
+          <Alert severity='error'>{props.errorMessage}</Alert>
+        )}
+
         <Typography variant='h6'>アカウント情報</Typography>
 
         <Controller
@@ -141,6 +144,7 @@ export function SignupForm(props: {
         <Controller
           name='studentNumber'
           control={control}
+          defaultValue=''
           rules={{
             required: '学籍番号を入力してください',
             pattern: {
@@ -276,10 +280,6 @@ export function SignupForm(props: {
       <Button color='primary' type='submit' variant='contained'>
         Sign up
       </Button>
-
-      {props.errorMessage && (
-        <Alert severity='error'>{props.errorMessage}</Alert>
-      )}
     </Stack>
   );
 }

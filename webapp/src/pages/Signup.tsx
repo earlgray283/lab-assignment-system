@@ -5,14 +5,16 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { signup } from '../apis/auth';
 
 import { SignupForm, SignupFormInput } from '../components/forms';
 import { DefaultLayout } from '../components/layout';
-import { postJson } from '../lib/axios';
 
 function Signup(): JSX.Element {
   const auth = getAuth();
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  const navigate = useNavigate();
   const onSubmit = async (data: SignupFormInput) => {
     try {
       const credential = await createUserWithEmailAndPassword(
@@ -23,11 +25,24 @@ function Signup(): JSX.Element {
       await updateProfile(credential.user, {
         displayName: `(${data.studentNumber})${data.name}`,
       });
-      data.idToken = await credential.user.getIdToken();
-      await postJson('/auth/signup', data);
-      await sendEmailVerification(credential.user, {
-        url: `${import.meta.env.VITE_HOST}`,
-      });
+      try {
+        const idToken = await credential.user.getIdToken();
+        await signup({
+          email: data.email,
+          studentNumber: data.studentNumber,
+          name: data.name,
+          lab1: data.lab1,
+          lab2: data.lab2,
+          lab3: data.lab3,
+          idToken: idToken,
+          password: data.password,
+        });
+        await sendEmailVerification(credential.user);
+        navigate('/');
+      } catch (e: unknown) {
+        await credential.user.delete();
+        setErrorMessage(`${e}`);
+      }
     } catch (e: unknown) {
       setErrorMessage(`${e}`);
     }

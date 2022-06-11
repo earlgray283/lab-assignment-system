@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 
 export const http = axios.create({
-  baseURL: `${import.meta.env.VITE_HOST}`,
+  baseURL: `${import.meta.env.VITE_BACKEND_HOST}`,
 });
 
 export async function postJson<
@@ -15,4 +15,8 @@ export async function postJson<
     },
   });
   return resp;
+}
+
+export function isErrorStatus(code: number): boolean {
+  return code >= 400;
 }
