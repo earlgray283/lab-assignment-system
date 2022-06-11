@@ -3,16 +3,20 @@ import {
   Box,
   Button,
   Divider,
+  IconButton,
   Menu,
   MenuItem,
   Toolbar,
 } from '@mui/material';
 import { getAuth } from 'firebase/auth';
 import React, { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import GitHubIcon from '@mui/icons-material/GitHub';
 
 import { UserContext } from '../App';
 import { TypographyLink } from './util';
+
+const repoLink = 'https://github.com/earlgray283/lab-assignment-system';
 
 export function Appbar(): JSX.Element {
   const user = useContext(UserContext);
@@ -34,6 +38,12 @@ export function Appbar(): JSX.Element {
           <TypographyLink to='/' variant='h6'>
             Lab assignment system
           </TypographyLink>
+          <IconButton
+            onClick={() => window.open(repoLink, '_blank')}
+            sx={{ color: 'white' }}
+          >
+            <GitHubIcon />
+          </IconButton>
 
           <Box sx={{ flexGrow: 1 }} />
 
