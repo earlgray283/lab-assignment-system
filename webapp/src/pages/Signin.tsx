@@ -1,20 +1,24 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { DefaultLayout } from '../components/layout';
 import { SigninForm, SigninFormInput } from '../components/forms';
+import { LoadingDispatchContext } from '../App';
 
 function Signin(): JSX.Element {
   const auth = getAuth();
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const navigate = useNavigate();
+  const setLoading = useContext(LoadingDispatchContext);
   const onSubmit = async (data: SigninFormInput) => {
+    setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
-      navigate('/');
     } catch (e: unknown) {
       setErrorMessage(`${e}`);
     }
+    setLoading(false);
+    navigate('/');
   };
 
   return (

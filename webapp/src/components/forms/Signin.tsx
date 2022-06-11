@@ -26,11 +26,12 @@ export function SigninForm(props: {
     <Stack
       spacing={2}
       component='form'
-      onSubmit={handleSubmit<SigninFormInput>(props.onSubmit)}
+      onSubmit={() => handleSubmit<SigninFormInput>(props.onSubmit)}
     >
       <Typography variant='h4'>ログイン</Typography>
       <Controller
         name='email'
+        defaultValue=''
         control={control}
         rules={{
           required: 'メールアドレスを入力してください',
@@ -56,6 +57,7 @@ export function SigninForm(props: {
 
       <Controller
         name='password'
+        defaultValue=''
         control={control}
         rules={{
           required: 'パスワードを入力してください',
@@ -68,6 +70,7 @@ export function SigninForm(props: {
           <TextField
             required
             fullWidth
+            autoComplete='current-passowrd'
             label='password'
             type='password'
             error={fieldState.error !== undefined}

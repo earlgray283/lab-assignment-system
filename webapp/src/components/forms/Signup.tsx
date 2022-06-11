@@ -48,6 +48,7 @@ export function SignupForm(props: {
         <Controller
           name='email'
           control={control}
+          defaultValue=''
           rules={{
             required: 'メールアドレスを入力してください',
             pattern: {
@@ -76,6 +77,7 @@ export function SignupForm(props: {
         <Controller
           name='password'
           control={control}
+          defaultValue=''
           rules={{
             required: 'パスワードを入力してください',
             minLength: {
@@ -89,6 +91,7 @@ export function SignupForm(props: {
               fullWidth
               label='password'
               type='password'
+              autoComplete='new-password'
               error={fieldState.error !== undefined}
               helperText={
                 fieldState.error?.message ??
@@ -102,6 +105,7 @@ export function SignupForm(props: {
         <Controller
           name='confirmPassword'
           control={control}
+          defaultValue=''
           rules={{
             required: 'パスワードを入力してください(確認用)',
             minLength: {
@@ -119,6 +123,7 @@ export function SignupForm(props: {
               fullWidth
               label='password(確認用)'
               type='password'
+              autoComplete='new-password'
               error={fieldState.error !== undefined}
               helperText={
                 fieldState.error?.message ??
@@ -162,6 +167,7 @@ export function SignupForm(props: {
         <Controller
           name='name'
           control={control}
+          defaultValue=''
           rules={{
             required: '氏名を入力してください',
             maxLength: 20,
@@ -188,6 +194,7 @@ export function SignupForm(props: {
         <Typography variant='h6'>研究室配属アンケート</Typography>
         <Controller
           name='lab1'
+          defaultValue=''
           control={control}
           rules={{
             validate: (input) =>
@@ -214,6 +221,7 @@ export function SignupForm(props: {
         <Controller
           name='lab2'
           control={control}
+          defaultValue=''
           rules={{
             validate: (input) =>
               input == watch().lab1 || input == watch().lab3
@@ -239,6 +247,7 @@ export function SignupForm(props: {
         <Controller
           name='lab3'
           control={control}
+          defaultValue=''
           rules={{
             validate: (input) =>
               input == watch().lab1 || input == watch().lab2

@@ -10,20 +10,20 @@ function Dashboard(): JSX.Element {
   const user = useContext(UserContext);
   const navigate = useNavigate();
   useEffect(() => {
-    if (!user.loading && user.currentUser === null) {
+    if (user === null) {
       navigate('/auth/signin');
     }
   }, [user]);
-  if (!user.currentUser) {
+  if (!user) {
     return <div />; // /auth/signin にリダイレクトされることが保証される
   }
 
   return (
     <FullLayout>
       <Stack spacing={2}>
-        {user.currentUser?.emailVerified && (
+        {user.emailVerified && (
           <Alert severity='error'>
-            {user.currentUser.email}{' '}
+            {user.email}{' '}
             宛に確認リンクを送信しました。メールアドレスの確認をしてください
           </Alert>
         )}
