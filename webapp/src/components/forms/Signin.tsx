@@ -27,7 +27,7 @@ export function SigninForm(props: {
     <Stack
       spacing={2}
       component='form'
-      onSubmit={() => handleSubmit<SigninFormInput>(props.onSubmit)}
+      onSubmit={handleSubmit<SigninFormInput>(props.onSubmit)}
     >
       <Typography variant='h4'>ログイン</Typography>
       <Controller
