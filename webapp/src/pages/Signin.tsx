@@ -1,4 +1,9 @@
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { FirebaseError } from 'firebase/app';
+import {
+  AuthErrorCodes,
+  getAuth,
+  signInWithEmailAndPassword,
+} from 'firebase/auth';
 import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,11 +20,22 @@ function Signin(): JSX.Element {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
+      navigate('/');
     } catch (e: unknown) {
-      setErrorMessage(`${e}`);
+      console.error(e);
+      if (e instanceof FirebaseError) {
+        switch (e.code) {
+          case AuthErrorCodes.INVALID_PASSWORD:
+            setErrorMessage('パスワードが正しくありません');
+            break;
+          default:
+            setErrorMessage(
+              `未知のエラーです。管理者に連絡をしてください。(code: ${e.code})`
+            );
+        }
+      }
     }
     setLoading(false);
-    navigate('/');
   };
 
   return (

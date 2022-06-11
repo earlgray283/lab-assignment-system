@@ -6,7 +6,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import React from 'react';
+import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { TypographyLink } from '../util';
@@ -30,6 +30,11 @@ export function SigninForm(props: {
       onSubmit={handleSubmit<SigninFormInput>(props.onSubmit)}
     >
       <Typography variant='h4'>ログイン</Typography>
+
+      {props.errorMessage && (
+        <Alert severity='error'>{props.errorMessage}</Alert>
+      )}
+
       <Controller
         name='email'
         defaultValue=''
@@ -97,10 +102,6 @@ export function SigninForm(props: {
       <Button color='primary' type='submit' variant='contained'>
         Sign in
       </Button>
-
-      {props.errorMessage && (
-        <Alert severity='error'>{props.errorMessage}</Alert>
-      )}
     </Stack>
   );
 }
