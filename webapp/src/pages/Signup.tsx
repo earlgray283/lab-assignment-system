@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   getAuth,
   sendEmailVerification,
   updateProfile,
 } from 'firebase/auth';
-import { DefaultLayout } from '../components/layout';
+import React, { useState } from 'react';
+
 import { SignupForm, SignupFormInput } from '../components/forms';
+import { DefaultLayout } from '../components/layout';
 import { postJson } from '../lib/axios';
 
 function Signup(): JSX.Element {

@@ -1,13 +1,14 @@
-import React from 'react';
 import {
+  Alert,
+  Button,
+  MenuItem,
   Stack,
   TextField,
-  Button,
-  Alert,
   Typography,
-  MenuItem,
 } from '@mui/material';
+import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
+
 import { labList } from '../../types/lab-list';
 
 export interface SignupFormInput {

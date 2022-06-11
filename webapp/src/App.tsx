@@ -1,7 +1,8 @@
 import { Box, CssBaseline, LinearProgress } from '@mui/material';
-import { getAuth, User } from 'firebase/auth';
+import { User, getAuth } from 'firebase/auth';
 import React, { createContext, useEffect, useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+
 import { Appbar } from './components/Appbar';
 import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';

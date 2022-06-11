@@ -1,10 +1,11 @@
+import { Alert, Stack } from '@mui/material';
 import { useContext, useEffect } from 'react';
-import { UserContext } from '../App';
-import { FullLayout } from '../components/layout';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Alert, Stack } from '@mui/material';
+
+import { UserContext } from '../App';
 import GpaCard from '../components/cards/GpaCard';
+import { FullLayout } from '../components/layout';
 
 function Dashboard(): JSX.Element {
   const user = useContext(UserContext);
