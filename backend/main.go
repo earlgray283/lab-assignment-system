@@ -11,13 +11,12 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const ProjectId = "lab-assignment-system"
+const ProjectId = "lab-assignment-system-project"
 
 func init() {
-	if os.Getenv("FRONT_URL") == "" {
-		if err := godotenv.Load(".env"); err != nil {
-			log.Fatal(err)
-		}
+	_ = godotenv.Load(".env")
+	if os.Getenv("GOOGLE_APPLICATION_CREDENTIALS") == "" {
+		log.Fatal("env GOOGLE_APPLICATION_CREDENTIALS must be set")
 	}
 }
 
@@ -30,7 +29,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fa, err := firebase.NewApp(context.Background(), nil)
+	fa, err := firebase.NewApp(context.Background(), &firebase.Config{ProjectID: ProjectId})
 	if err != nil {
 		log.Fatal(err)
 	}

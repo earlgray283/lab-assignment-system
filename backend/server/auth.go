@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"lab-assignment-system-backend/repository"
 	"log"
 	"net/http"
@@ -17,7 +16,7 @@ import (
 type SignupForm struct {
 	Email         string `json:"email,omitempty"`
 	Password      string `json:"password,omitempty"`
-	StudentNumber int    `json:"studentNumber,omitempty"`
+	StudentNumber string `json:"studentNumber,omitempty"`
 	Name          string `json:"name,omitempty"`
 	IdToken       string `json:"idToken,omitempty"`
 	Lab1          string `json:"lab1,omitempty"`
@@ -46,16 +45,21 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 			return
 		}
 		if !validateEmail(signupForm.Email) || len(signupForm.Password) < 8 {
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("invalid email or password"))
+			AbortWithErrorJSON(c, NewError(http.StatusBadRequest, "invalid email or password"))
 			return
 		}
 		token, err := srv.auth.VerifyIDToken(ctx, signupForm.IdToken)
 		if err != nil {
 			srv.logger.Println(err)
-			c.AbortWithStatus(http.StatusUnauthorized)
+			AbortWithErrorJSON(c, NewError(http.StatusUnauthorized, "not logged in"))
 			return
 		}
-		userdata, _ := srv.auth.GetUser(ctx, token.UID)
+		userdata, err := srv.auth.GetUser(ctx, token.UID)
+		if err != nil {
+			srv.logger.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
 		user := &repository.User{
 			UID:           userdata.UID,
 			Email:         userdata.Email,

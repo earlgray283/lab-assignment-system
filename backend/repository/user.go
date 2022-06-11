@@ -9,7 +9,7 @@ import (
 type User struct {
 	UID           string
 	Email         string
-	StudentNumber int
+	StudentNumber string
 	Name          string
 	Lab1          string
 	Lab2          string
