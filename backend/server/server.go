@@ -17,9 +17,12 @@ type Server struct {
 	frontendUrl string
 }
 
+const ExcludeLowerPoint = 60
+
 func NewCorsConfig(allowOrigins []string) *cors.Config {
 	config := cors.DefaultConfig()
 	config.AllowOrigins = allowOrigins
+	config.AllowCredentials = true
 	return &config
 }
 
@@ -39,4 +42,16 @@ func New(dc *datastore.Client, auth *auth.Client, frontendUrl string) *Server {
 
 func (srv *Server) Run(addr ...string) error {
 	return srv.r.Run(addr...)
+}
+
+func (srv *Server) GetAuthToken(c *gin.Context) (*auth.Token, error) {
+	sessionCookie, err := c.Cookie("session")
+	if err != nil {
+		return nil, err
+	}
+	authToken, err := srv.auth.VerifySessionCookie(c.Request.Context(), sessionCookie)
+	if err != nil {
+		return nil, err
+	}
+	return authToken, nil
 }

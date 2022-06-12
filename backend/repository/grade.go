@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"strconv"
-
 	"cloud.google.com/go/datastore"
 )
 
@@ -22,6 +20,6 @@ type SubjectGrade struct {
 
 const KindGrade = "grade"
 
-func NewGradeKey(studentNumber int) *datastore.Key {
-	return datastore.NameKey(KindGrade, strconv.Itoa(studentNumber), nil)
+func NewGradeKey(uid string) *datastore.Key {
+	return datastore.NameKey(KindGrade, uid, nil)
 }

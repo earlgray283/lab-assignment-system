@@ -33,6 +33,7 @@ func (srv *Server) AuthRouter() {
 	{
 		gradesRouter.POST("/signin", srv.HandleSignin())
 		gradesRouter.POST("/signup", srv.HandleSignup())
+		gradesRouter.POST("/signout", srv.HandleSignout())
 	}
 }
 
@@ -109,6 +110,18 @@ func (srv *Server) HandleSignin() gin.HandlerFunc {
 	}
 }
 
+func (srv *Server) HandleSignout() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		sessionCookie, err := c.Request.Cookie("session")
+		if err != nil {
+			AbortWithErrorJSON(c, NewError(http.StatusBadRequest, "no session cookie"))
+			return
+		}
+		sessionCookie.MaxAge = -1
+		http.SetCookie(c.Writer, sessionCookie)
+	}
+}
+
 var domainWhitelist = map[string]struct{}{
 	"shizuoka.ac.jp":     {},
 	"inf.shizuoka.ac.jp": {},
@@ -135,6 +148,6 @@ func makeSessionCookie(ctx context.Context, auth *auth.Client, idToken string) (
 		MaxAge:   int(expiresIn),
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   true,
+		//Secure:   true,
 	}, nil
 }
