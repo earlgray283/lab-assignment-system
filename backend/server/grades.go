@@ -3,6 +3,7 @@ package server
 import (
 	"lab-assignment-system-backend/lib"
 	"lab-assignment-system-backend/repository"
+	"lab-assignment-system-backend/server/models"
 	"net/http"
 	"time"
 
@@ -15,19 +16,37 @@ func (srv *Server) GradesRouter() {
 	{
 		gradesRouter.POST("/", srv.HandlePostGrade())
 		gradesRouter.POST("/generate-token", srv.HandleGenerateToken())
+		gradesRouter.GET("/gpa", srv.HandleGetGpa())
+	}
+}
+
+func (srv *Server) HandleGetGpa() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+		authToken, err := srv.GetAuthToken(c)
+		if err != nil {
+			srv.logger.Println(err)
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		var grade repository.Grade
+		if err := srv.dc.Get(ctx, repository.NewGradeKey(authToken.UID), &grade); err != nil {
+			srv.logger.Println(err)
+			AbortWithErrorJSON(c, NewError(http.StatusNotFound, "there are no grades"))
+			return
+		}
+		gpa := lib.CalculateGpa(&grade, &lib.CalculateGpaOption{
+			Until:             time.Date(time.Now().Year(), time.March, 31, 0, 0, 0, 0, nil),
+			ExcludeLowerPoint: ExcludeLowerPoint,
+		})
+		c.JSON(http.StatusOK, &models.Gpa{Gpa: gpa})
 	}
 }
 
 func (srv *Server) HandleGenerateToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
-		sessionCookie, err := c.Cookie("session")
-		if err != nil {
-			srv.logger.Println(err)
-			c.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-		authToken, err := srv.auth.VerifySessionCookie(ctx, sessionCookie)
+		authToken, err := srv.GetAuthToken(c)
 		if err != nil {
 			srv.logger.Println(err)
 			c.AbortWithStatus(http.StatusUnauthorized)
@@ -58,14 +77,17 @@ func (srv *Server) HandleGenerateToken() gin.HandlerFunc {
 
 func (srv *Server) HandlePostGrade() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
+		authToken, err := srv.GetAuthToken(c)
+		if err != nil {
+			AbortWithErrorJSON(c, NewError(http.StatusUnauthorized, "not logged in"))
+		}
 		var grade, empty repository.Grade
 		if err := c.BindJSON(&grade); err != nil {
 			srv.logger.Println(err)
 			return
 		}
-		key := repository.NewGradeKey(grade.StudentNumber)
-		err := srv.dc.Get(c, key, &empty)
+		key := repository.NewGradeKey(authToken.UID)
+		err = srv.dc.Get(c, key, &empty)
 		if err == nil {
 			// 既に成績が存在する場合は処理を行わない
 			// 上書きしたい場合は delete リクエストを送ってもらう
