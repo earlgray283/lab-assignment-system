@@ -3,13 +3,12 @@ import { useContext, useEffect, useState } from 'react';
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { LoadingDispatchContext, UserContext } from '../App';
+import { UserContext } from '../App';
 import GpaCard from '../components/cards/GpaCard';
 import { FullLayout } from '../components/layout';
 import { fetchGpa } from '../apis/grade';
 
 function Dashboard(): JSX.Element {
-  const setLoading = useContext(LoadingDispatchContext);
   const [gpa, setGpa] = useState<number | null | undefined>(undefined);
   const user = useContext(UserContext);
   const navigate = useNavigate();
@@ -20,7 +19,6 @@ function Dashboard(): JSX.Element {
   }, [user]);
 
   useEffect(() => {
-    setLoading(true);
     (async () => {
       try {
         const gpa2 = await fetchGpa();
@@ -33,8 +31,6 @@ function Dashboard(): JSX.Element {
         }
       }
     })();
-
-    return () => setLoading(false);
   }, []);
 
   if (!user) {
@@ -53,8 +49,8 @@ function Dashboard(): JSX.Element {
         {gpa === null && (
           <Alert severity='error'>
             成績情報が登録されていないようです。
-            <Link to='/'>成績情報の登録ページ</Link>
-            から登録作業を行なって下さい。
+            <Link to='/profile/register-grades'>成績情報の登録ページ</Link>
+            から登録作業を行って下さい。
           </Alert>
         )}
         {gpa && <GpaCard data={[1, 2, 3, 4, 3, 2, 1, 0]} gpa={gpa} />}

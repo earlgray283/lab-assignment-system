@@ -1,13 +1,21 @@
 import { Box, CssBaseline, LinearProgress } from '@mui/material';
 import { User, getAuth } from 'firebase/auth';
-import React, { createContext, useEffect, useState } from 'react';
+import React, {
+  createContext,
+  lazy,
+  Suspense,
+  useEffect,
+  useState,
+} from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 import { Appbar } from './components/Appbar';
-import Dashboard from './pages/Dashboard';
-import NotFound from './pages/NotFound';
-import Signin from './pages/Signin';
-import Signup from './pages/Signup';
+import RegisterGrades from './pages/RegisterGrades';
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Signin = lazy(() => import('./pages/Signin'));
+const Signup = lazy(() => import('./pages/Signup'));
 
 export const UserContext = createContext<User | null | undefined>(undefined);
 export const LoadingStateContext = createContext(false);
@@ -39,24 +47,34 @@ function App(): JSX.Element {
           <BrowserRouter>
             <Appbar />
             {loading && <LinearProgress />}
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-              }}
-            >
-              <Routes>
-                <Route path='/'>
-                  <Route index element={<Dashboard />} />
+            <Suspense fallback={<LinearProgress />}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                }}
+              >
+                <Routes>
+                  <Route path='*' element={<NotFound />} />
+                  <Route path='/'>
+                    <Route index element={<Dashboard />} />
 
-                  <Route path='auth'>
-                    <Route path='signup' element={<Signup />} />
-                    <Route path='signin' element={<Signin />} />
+                    <Route path='auth'>
+                      <Route path='signup' element={<Signup />} />
+                      <Route path='signin' element={<Signin />} />
+                    </Route>
+
+                    <Route path='profile'>
+                      <Route index element={<Profile />} />
+                      <Route
+                        path='register-grades'
+                        element={<RegisterGrades />}
+                      />
+                    </Route>
                   </Route>
-                </Route>
-                <Route path='*' element={<NotFound />} />
-              </Routes>
-            </Box>
+                </Routes>
+              </Box>
+            </Suspense>
           </BrowserRouter>
         </UserContext.Provider>
       </LoadingDispatchContext.Provider>
