@@ -15,6 +15,7 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 
 import { UserContext } from '../App';
 import { TypographyLink } from './util';
+import { signout } from '../apis/auth';
 
 const repoLink = 'https://github.com/earlgray283/lab-assignment-system';
 
@@ -26,6 +27,7 @@ export function Appbar(): JSX.Element {
   const handleSignout = async () => {
     setAnchorEl(null);
     await auth.signOut();
+    await signout();
   };
 
   return (

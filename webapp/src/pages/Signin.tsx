@@ -2,10 +2,12 @@ import { FirebaseError } from 'firebase/app';
 import {
   AuthErrorCodes,
   getAuth,
+  getIdToken,
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { signin } from '../apis/auth';
 
 import { LoadingDispatchContext } from '../App';
 import { SigninForm, SigninFormInput } from '../components/forms';
@@ -19,7 +21,13 @@ function Signin(): JSX.Element {
   const onSubmit = async (data: SigninFormInput) => {
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, data.email, data.password);
+      const credential = await signInWithEmailAndPassword(
+        auth,
+        data.email,
+        data.password
+      );
+      const idToken = await getIdToken(credential.user);
+      await signin(idToken);
       navigate('/');
     } catch (e: unknown) {
       console.error(e);
