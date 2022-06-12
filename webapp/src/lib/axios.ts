@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 
 export const http = axios.create({
   baseURL: `${import.meta.env.VITE_BACKEND_HOST}`,
+  withCredentials: true,
 });
 
 export async function postJson<

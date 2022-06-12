@@ -41,7 +41,12 @@ const options = {
   },
 };
 
-function GpaCard(props: { data: number[] }): JSX.Element {
+interface Props {
+  data: number[];
+  gpa: number | null;
+}
+
+function GpaCard(props: Props): JSX.Element {
   const data = {
     labels,
     datasets: [
@@ -51,9 +56,10 @@ function GpaCard(props: { data: number[] }): JSX.Element {
       },
     ],
   };
+
   return (
     <Box boxShadow={1} padding='5px'>
-      あなたの GPA は 4.0 です
+      <p>あなたの GPA は 4.0 です</p>
       <Box display='flex' flexDirection='column' alignItems='center'>
         <Box width='50%' minWidth='300px'>
           <Bar data={data} options={options} />
