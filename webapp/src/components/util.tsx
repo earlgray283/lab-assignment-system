@@ -1,5 +1,5 @@
 import { Typography } from '@mui/material';
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 export const TypographyLink = (props: {
@@ -35,18 +35,3 @@ export const TypographyLink = (props: {
     {props.children}
   </Typography>
 );
-
-export const useWindowSize = (): [number, number] => {
-  const [innerWidth, setInnerWidth] = useState(window.innerWidth);
-  const [innerHeight, setInnerHeight] = useState(window.innerHeight);
-  useEffect(() => {
-    const onResize = () => {
-      setInnerWidth(window.innerWidth);
-      setInnerHeight(window.innerHeight);
-    };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  return [innerWidth, innerHeight];
-};
