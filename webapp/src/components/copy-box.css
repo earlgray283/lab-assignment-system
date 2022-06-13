@@ -1,0 +1,10 @@
+.copy-box {
+  margin: 5px 0px 5px 0px;
+  padding: 5px 10px 5px 10px;
+  border-radius: 10px;
+  background-color: #dddddd;
+  overflow-wrap: normal;
+  inline-size: auto;
+  font-family: monospace;
+  font-size: small;
+}
