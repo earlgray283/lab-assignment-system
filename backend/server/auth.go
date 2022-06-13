@@ -148,6 +148,6 @@ func makeSessionCookie(ctx context.Context, auth *auth.Client, idToken string) (
 		MaxAge:   int(expiresIn),
 		Path:     "/",
 		HttpOnly: true,
-		//Secure:   true,
+		Secure:   true,
 	}, nil
 }
