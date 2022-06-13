@@ -1,15 +1,30 @@
-import { Button, IconButton, Typography } from '@mui/material';
+import { Alert, Button, Typography } from '@mui/material';
 import { DefaultLayout } from '../components/layout';
 import './register-grades.css';
 import React, { useState } from 'react';
 import PrivacyPolicy from '../components/forms/PrivacyPolicy';
-import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import RegisterGrades41 from '../assets/register-grades-4-1.png';
 import RegisterGrades42 from '../assets/register-grades-4-2.png';
+import { generateToken } from '../apis/grade';
+import { GradeRegisterToken } from '../apis/models/grade';
+import CopyBox from '../components/CopyBox';
 
 function RegisterGrades(): JSX.Element {
   const [agree, setAgree] = useState(false);
-  const [registerToken, setRegisterToken] = useState<string | null>(null);
+  const [registerToken, setRegisterToken] = useState<GradeRegisterToken | null>(
+    null
+  );
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const handleGenerateToken = async () => {
+    try {
+      const token = await generateToken();
+      setRegisterToken(token);
+    } catch (e) {
+      if (e instanceof Error) {
+        setErrorMessage(e.message);
+      }
+    }
+  };
   if (!agree) {
     return <PrivacyPolicy onAgree={() => setAgree(true)} />;
   }
@@ -64,28 +79,18 @@ function RegisterGrades(): JSX.Element {
 
       <div className='section'>
         <Typography variant='h6'>3. 成績登録トークンの取得をする</Typography>
+        {errorMessage && <Alert severity='error'>{errorMessage}</Alert>}
         <Button
           variant='contained'
           sx={{ fontSize: '10px' }}
-          onClick={() => setRegisterToken('aaaaaaaaaaaa')}
+          onClick={handleGenerateToken}
         >
           トークンの取得
         </Button>
         {registerToken && (
-          <div
-            style={{
-              margin: '5px 0px 5px 0px',
-              padding: '5px 10px 5px 10px',
-              borderRadius: '10px',
-              backgroundColor: '#DDDDDD',
-              width: 'auto',
-            }}
-          >
-            {registerToken}
-            <IconButton size='small' sx={{ alignSelf: 'right' }}>
-              <ContentPasteIcon />
-            </IconButton>
-          </div>
+          <CopyBox copyText={registerToken.token}>
+            {registerToken.token}
+          </CopyBox>
         )}
       </div>
 
