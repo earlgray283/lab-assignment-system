@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         grades-sender
-// @namespace    http://tampermonkey.net/
+// @namespace    https://lab-assignment-system-project.web.app/
 // @version      0.1
 // @description  成績情報を取得し、lab-assignment-system に送信する。
 // @author       earlgray
@@ -30,7 +30,7 @@
       alert('matches.length !== 3');
       return;
     }
-    const studentNumber = Number(matches[1]);
+    const studentNumber = matches[1].replace("　", "");
     const studentName = matches[2];
     return {
       studentNumber: studentNumber,
@@ -68,13 +68,14 @@
     };
   };
 
-  const postJson = async (url, data) => {
+  const postJson = async (url, data, token) => {
     return await fetch(url, {
       method: 'POST',
       mode: 'no-cors',
       cache: 'no-cache',
       headers: {
         'Content-Type': 'application/json',
+        "register-token": token,
       },
       body: JSON.stringify(data),
     });
@@ -106,9 +107,9 @@
       const jsonObj = await scrapeGrades();
       console.log(JSON.stringify(jsonObj));
 
-      const jwtToken = window.prompt('成績登録トークンを入力してください。');
-      const backendUrl = 'https://example.com';
-      const resp = await postJson(backendUrl, jsonObj);
+      const registerToken = window.prompt('成績登録トークンを入力してください。');
+      const backendUrl = 'https://lab-assignment-system-backend-jgpefn3ota-an.a.run.app/grades';
+      const resp = await postJson(backendUrl, jsonObj, registerToken);
       if (!resp.ok) {
         switch (resp.status) {
           case 400:
