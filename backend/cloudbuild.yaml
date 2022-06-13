@@ -1,0 +1,35 @@
+steps:
+  - name: "gcr.io/kaniko-project/executor:latest"
+    args:
+      - --destination=$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+      - --cache=true
+      - --dockerfile=backend/Dockerfile
+      - --context=backend
+    id: Build
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk:slim"
+    args:
+      - run
+      - services
+      - update
+      - $_SERVICE_NAME
+      - "--platform=managed"
+      - "--image=$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA"
+      - >-
+        --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID,$_LABELS
+      - "--region=$_DEPLOY_REGION"
+      - "--quiet"
+    id: Deploy
+    entrypoint: gcloud
+options:
+  substitutionOption: ALLOW_LOOSE
+substitutions:
+  _GCR_HOSTNAME: asia.gcr.io
+  _LABELS: gcb-trigger-id=0fa4e6cf-c22e-4da1-90af-9a42a6853081
+  _TRIGGER_ID: 0fa4e6cf-c22e-4da1-90af-9a42a6853081
+  _PLATFORM: managed
+  _SERVICE_NAME: lab-assignment-system-backend
+  _DEPLOY_REGION: asia-northeast1
+tags:
+  - gcp-cloud-build-deploy-cloud-run
+  - gcp-cloud-build-deploy-cloud-run-managed
+  - lab-assignment-system-backend
