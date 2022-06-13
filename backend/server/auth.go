@@ -149,5 +149,6 @@ func makeSessionCookie(ctx context.Context, auth *auth.Client, idToken string) (
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
 	}, nil
 }
