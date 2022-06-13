@@ -27,9 +27,13 @@ func NewCorsConfig(allowOrigins []string) *cors.Config {
 	return &config
 }
 
-func New(dc *datastore.Client, auth *auth.Client, frontendUrl string) *Server {
+func New(dc *datastore.Client, auth *auth.Client, frontendUrl, gakujoUrl string) *Server {
 	r := gin.Default()
-	corsConfig := NewCorsConfig([]string{"http://localhost:3000", frontendUrl})
+	corsConfig := NewCorsConfig([]string{
+		"http://localhost:3000",
+		gakujoUrl,
+		frontendUrl,
+	})
 	r.Use(cors.New(*corsConfig))
 	logger := log.Default()
 	gin.DefaultWriter = logger.Writer()

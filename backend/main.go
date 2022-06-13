@@ -23,6 +23,10 @@ func main() {
 	if frontendUrl == "" {
 		log.Fatal("environmental value FRONTEND_URL must be set")
 	}
+	gakujoUrl := os.Getenv("GAKUJO_URL")
+	if gakujoUrl == "" {
+		log.Fatal("environmental value GAKUJO_URL must be set")
+	}
 	dc, err := datastore.NewClient(context.Background(), ProjectId)
 	if err != nil {
 		log.Fatal(err)
@@ -40,7 +44,7 @@ func main() {
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
 	}
-	srv := server.New(dc, auth, frontendUrl)
+	srv := server.New(dc, auth, frontendUrl, gakujoUrl)
 	if err := srv.Run(fmt.Sprintf(":%v", port)); err != nil {
 		log.Fatal(err)
 	}
