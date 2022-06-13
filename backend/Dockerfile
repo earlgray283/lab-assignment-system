@@ -9,7 +9,7 @@ COPY . .
 RUN \
     GOOS=linux \
     GOARCH=amd64 \
-    go build -mod=readonly -v -o app
+    go build -mod=readonly -o app
 
 FROM --platform=linux/amd64 ubuntu:22.04
 
