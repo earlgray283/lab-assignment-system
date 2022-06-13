@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"lab-assignment-system-backend/repository"
+	"lab-assignment-system-backend/server/models"
 	"time"
 )
 
@@ -10,9 +10,9 @@ type CalculateGpaOption struct {
 	ExcludeLowerPoint int
 }
 
-func CalculateGpa(grade *repository.Grade, option *CalculateGpaOption) float64 {
+func CalculateGpa(subjectGrades []models.SubjectGrade, option *CalculateGpaOption) float64 {
 	gpSum, unitNum := 0.0, 0
-	for _, subjectGrade := range grade.SubjectGrades {
+	for _, subjectGrade := range subjectGrades {
 		if subjectGrade.Point < option.ExcludeLowerPoint {
 			continue
 		}

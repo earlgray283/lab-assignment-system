@@ -35,11 +35,7 @@ func (srv *Server) HandleGetGpa() gin.HandlerFunc {
 			AbortWithErrorJSON(c, NewError(http.StatusNotFound, "there are no grades"))
 			return
 		}
-		gpa := lib.CalculateGpa(&grade, &lib.CalculateGpaOption{
-			Until:             time.Date(time.Now().Year(), time.March, 31, 0, 0, 0, 0, nil),
-			ExcludeLowerPoint: ExcludeLowerPoint,
-		})
-		c.JSON(http.StatusOK, &models.Gpa{Gpa: gpa})
+		c.JSON(http.StatusOK, &grade)
 	}
 }
 
@@ -55,14 +51,14 @@ func (srv *Server) HandleGenerateToken() gin.HandlerFunc {
 
 		token := lib.MakeRandomString(32)
 		now := time.Now()
-		gradeRequestToken := &repository.GradeRequestToken{
+		gradeRequestToken := &repository.RegisterToken{
 			UID:       authToken.UID,
 			Token:     token,
 			Expires:   now.Add(time.Hour),
 			CreatedAt: now,
 		}
 		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-			if _, err := tx.Put(repository.NewGradeRequestTokenKey(token), gradeRequestToken); err != nil {
+			if _, err := tx.Put(repository.NewRegisterTokenKey(token), gradeRequestToken); err != nil {
 				return err
 			}
 			return nil
@@ -77,33 +73,54 @@ func (srv *Server) HandleGenerateToken() gin.HandlerFunc {
 
 func (srv *Server) HandlePostGrade() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authToken, err := srv.GetAuthToken(c)
-		if err != nil {
-			AbortWithErrorJSON(c, NewError(http.StatusUnauthorized, "not logged in"))
+		ctx := c.Request.Context()
+		token := c.Request.Header.Get("register-token")
+		if token == "" {
+			AbortWithErrorJSON(c, NewError(http.StatusBadRequest, "You must generate register-token"))
+			return
 		}
-		var grade, empty repository.Grade
+		var grade models.Grade
 		if err := c.BindJSON(&grade); err != nil {
 			srv.logger.Println(err)
 			return
 		}
-		key := repository.NewGradeKey(authToken.UID)
-		err = srv.dc.Get(c, key, &empty)
-		if err == nil {
+
+		var registerToken repository.RegisterToken
+		if err := srv.dc.Get(ctx, repository.NewRegisterTokenKey(token), &registerToken); err != nil {
+			srv.logger.Println(err)
+			if err == datastore.ErrNoSuchEntity {
+				AbortWithErrorJSON(c, NewError(http.StatusBadRequest, "Invalid register-token"))
+			} else {
+				c.AbortWithStatus(http.StatusInternalServerError)
+			}
+			return
+		}
+
+		var repoGrade repository.Grade
+		gradeKey := repository.NewGradeKey(registerToken.UID)
+		if err := srv.dc.Get(c, gradeKey, &repoGrade); err != nil {
+			srv.logger.Println(err)
+			if err != datastore.ErrNoSuchEntity {
+				c.AbortWithStatus(http.StatusInternalServerError)
+			} else {
+				if _, err := srv.dc.Put(c, gradeKey, &repository.Grade{
+					UID:           registerToken.UID,
+					StudentName:   grade.StudentName,
+					StudentNumber: grade.StudentNumber,
+					Gpa: lib.CalculateGpa(grade.Grades, &lib.CalculateGpaOption{
+						Until:             time.Date(time.Now().Year(), 3, 31, 23, 59, 59, 0, nil),
+						ExcludeLowerPoint: 60,
+					}),
+				}); err != nil {
+					srv.logger.Println(err)
+					c.AbortWithStatus(http.StatusInternalServerError)
+				}
+			}
+		} else {
 			// 既に成績が存在する場合は処理を行わない
 			// 上書きしたい場合は delete リクエストを送ってもらう
-			srv.logger.Println("Duplicate post grades request")
-			c.AbortWithStatus(http.StatusConflict)
-			return
-		}
-		if err != datastore.ErrNoSuchEntity {
 			srv.logger.Println(err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
-		if _, err := srv.dc.Put(c, key, &grade); err != nil {
-			srv.logger.Println(err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
+			AbortWithErrorJSON(c, NewError(http.StatusConflict, "Grade has already existed. Please delete it and try again."))
 		}
 	}
 }
