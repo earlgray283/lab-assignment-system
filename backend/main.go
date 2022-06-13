@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"lab-assignment-system-backend/server"
 	"log"
 	"os"
@@ -15,15 +16,12 @@ const ProjectId = "lab-assignment-system-project"
 
 func init() {
 	_ = godotenv.Load(".env")
-	if os.Getenv("GOOGLE_APPLICATION_CREDENTIALS") == "" {
-		log.Fatal("env GOOGLE_APPLICATION_CREDENTIALS must be set")
-	}
 }
 
 func main() {
-	frontendUrl := os.Getenv("FRONT_URL")
+	frontendUrl := os.Getenv("FRONTEND_URL")
 	if frontendUrl == "" {
-		log.Fatal("environmental value FRONT_URL must be set")
+		log.Fatal("environmental value FRONTEND_URL must be set")
 	}
 	dc, err := datastore.NewClient(context.Background(), ProjectId)
 	if err != nil {
@@ -38,8 +36,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	port := "8080"
+	if os.Getenv("PORT") != "" {
+		port = os.Getenv("PORT")
+	}
 	srv := server.New(dc, auth, frontendUrl)
-	if err := srv.Run(":8080"); err != nil {
+	if err := srv.Run(fmt.Sprintf(":%v", port)); err != nil {
 		log.Fatal(err)
 	}
 }
