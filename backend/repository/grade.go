@@ -1,21 +1,17 @@
 package repository
 
 import (
+	"time"
+
 	"cloud.google.com/go/datastore"
 )
 
 type Grade struct {
-	SubjectGrades []SubjectGrade `json:"subjectGrades,omitempty"`
-	StudentName   string         `json:"studentName,omitempty"`
-	StudentNumber int            `json:"studentNumber,omitempty"`
-}
-
-type SubjectGrade struct {
-	SubjectName string  `json:"subjectName,omitempty"` // 科目名
-	UnitNum     int     `json:"unitNum,omitempty"`     // 単位
-	Point       int     `json:"point,omitempty"`       // 点数
-	Gp          float64 `json:"gp,omitempty"`          // GP
-	ReportedAt  string  `json:"reportedAt,omitempty"`  // 報告日
+	UID           string    `json:"uid,omitempty"`
+	StudentName   string    `json:"studentName,omitempty"`
+	StudentNumber string    `json:"studentNumber,omitempty"`
+	Gpa           float64   `json:"gpa,omitempty"`
+	CreatedAt     time.Time `json:"createdAt,omitempty"`
 }
 
 const KindGrade = "grade"
