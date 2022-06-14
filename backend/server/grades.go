@@ -108,7 +108,7 @@ func (srv *Server) HandlePostGrade() gin.HandlerFunc {
 					StudentName:   grade.StudentName,
 					StudentNumber: grade.StudentNumber,
 					Gpa: lib.CalculateGpa(grade.Grades, &lib.CalculateGpaOption{
-						Until:             time.Date(time.Now().Year(), 3, 31, 23, 59, 59, 0, nil),
+						Until:             time.Date(time.Now().Year(), 3, 31, 23, 59, 59, 0, time.Local),
 						ExcludeLowerPoint: 60,
 					}),
 				}); err != nil {
