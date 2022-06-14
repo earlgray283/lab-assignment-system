@@ -41,6 +41,7 @@ func New(dc *datastore.Client, auth *auth.Client, frontendUrl, gakujoUrl string)
 
 	srv.GradesRouter()
 	srv.AuthRouter()
+	srv.LabsRouter()
 
 	return srv
 }

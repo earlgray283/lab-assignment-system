@@ -1,5 +1,9 @@
 package models
 
+type LabList struct {
+	Labs []LabList `json:"labs,omitempty"`
+}
+
 type Lab struct {
 	ID           string `json:"id,omitempty"`
 	Name         string `json:"name,omitempty"`
