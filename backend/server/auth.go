@@ -61,19 +61,14 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-		user := &repository.User{
-			UID:           userdata.UID,
-			Email:         userdata.Email,
-			StudentNumber: signupForm.StudentNumber,
-			Name:          signupForm.Name,
-			Lab1:          signupForm.Lab1,
-			Lab2:          signupForm.Lab2,
-			Lab3:          signupForm.Lab3,
-			CreatedAt:     time.Now(),
-		}
-		key := repository.NewUserKey(user.UID)
+		user, userKey := repository.NewUser(userdata.UID, userdata.Email, signupForm.StudentNumber, signupForm.Name)
+		lab1, lab1key := repository.NewLabSurvey(user.UID, 1, signupForm.Lab1)
+		lab2, lab2key := repository.NewLabSurvey(user.UID, 2, signupForm.Lab2)
+		lab3, lab3key := repository.NewLabSurvey(user.UID, 3, signupForm.Lab3)
+		dsts := []any{user, lab1, lab2, lab3}
+		keys := []*datastore.Key{userKey, lab1key, lab2key, lab3key}
 		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-			if _, err := tx.Put(key, user); err != nil {
+			if _, err := tx.PutMulti(keys, dsts); err != nil {
 				return err
 			}
 			return nil

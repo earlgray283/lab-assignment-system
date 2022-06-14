@@ -50,35 +50,15 @@ func (srv *Server) HandleGetLabs() gin.HandlerFunc {
 			return
 		}
 
-		labs := make([]models.Lab, len(keys))
-		baseQuery := datastore.NewQuery(repository.KindUser)
+		labs := make([]*models.Lab, len(keys))
 		for i, repoLab := range repoLabs {
-			var err error
-			labs[i] = models.Lab{
+			labs[i] = &models.Lab{
 				ID:       repoLab.ID,
 				Name:     repoLab.Name,
 				Capacity: repoLab.Capacity,
 			}
-			labs[i].FirstChoice, err = srv.dc.Count(ctx, baseQuery.Filter("Lab1 = ", repoLab.ID))
-			if err != nil {
-				srv.logger.Println(err)
-				c.AbortWithStatus(http.StatusInternalServerError)
-				return
-			}
-			labs[i].SecondChoice, err = srv.dc.Count(ctx, baseQuery.Filter("Lab2 = ", repoLab.ID))
-			if err != nil {
-				srv.logger.Println(err)
-				c.AbortWithStatus(http.StatusInternalServerError)
-				return
-			}
-			labs[i].ThirdChoice, err = srv.dc.Count(ctx, baseQuery.Filter("Lab3 = ", repoLab.ID))
-			if err != nil {
-				srv.logger.Println(err)
-				c.AbortWithStatus(http.StatusInternalServerError)
-				return
-			}
 		}
 
-		c.JSON(http.StatusOK, labs)
+		c.JSON(http.StatusOK, &models.LabList{Labs: labs})
 	}
 }
