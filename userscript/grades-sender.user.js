@@ -118,7 +118,7 @@
       const registerToken =
         window.prompt('成績登録トークンを入力してください。');
       const backendUrl =
-        'https://lab-assignment-system-backend-jgpefn3ota-an.a.run.app/grades/';
+        'https://lab-assignment-system-backend-jgpefn3ota-an.a.run.app/grades';
       const resp = await postJson(backendUrl, jsonObj, registerToken);
       if (!resp.ok) {
         switch (resp.status) {
