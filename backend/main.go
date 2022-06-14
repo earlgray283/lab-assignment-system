@@ -6,6 +6,7 @@ import (
 	"lab-assignment-system-backend/server"
 	"log"
 	"os"
+	"time"
 
 	"cloud.google.com/go/datastore"
 	firebase "firebase.google.com/go"
@@ -16,6 +17,12 @@ const ProjectId = "lab-assignment-system-project"
 
 func init() {
 	_ = godotenv.Load(".env")
+
+	jst, err := time.LoadLocation("Asia/Tokyo")
+	if err != nil {
+		log.Fatal(err)
+	}
+	time.Local = jst
 }
 
 func main() {
