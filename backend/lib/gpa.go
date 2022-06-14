@@ -2,12 +2,13 @@ package lib
 
 import (
 	"lab-assignment-system-backend/server/models"
+	"log"
 	"time"
 )
 
 type CalculateGpaOption struct {
 	Until             time.Time
-	ExcludeLowerPoint int
+	ExcludeLowerPoint float64
 }
 
 func CalculateGpa(subjectGrades []models.SubjectGrade, option *CalculateGpaOption) float64 {
@@ -23,5 +24,6 @@ func CalculateGpa(subjectGrades []models.SubjectGrade, option *CalculateGpaOptio
 		gpSum += subjectGrade.Gp * float64(subjectGrade.UnitNum)
 		unitNum += subjectGrade.UnitNum
 	}
+	log.Println(gpSum, unitNum)
 	return gpSum / float64(unitNum)
 }
