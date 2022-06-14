@@ -56,11 +56,19 @@
       const unitNum = Number(
         tr.querySelector('td:nth-child(5)').textContent.trim()
       );
+      const point = Number(
+        tr.querySelector('td:nth-child(7)').textContent.trim()
+      );
       const gp = Number(tr.querySelector('td:nth-child(8)').textContent.trim());
       const reportedAt = tr
         .querySelector('td:nth-child(10)')
         .textContent.trim();
-      grades.push({ unitNum: unitNum, gp: gp, reportedAt: reportedAt });
+      grades.push({
+        unitNum: unitNum,
+        gp: gp,
+        reportedAt: reportedAt,
+        point: point,
+      });
     }
 
     return {
