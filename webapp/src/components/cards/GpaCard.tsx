@@ -47,6 +47,7 @@ interface Props {
 }
 
 function GpaCard(props: Props): JSX.Element {
+  const gpa = props.gpa.toFixed(4);
   const data = {
     labels,
     datasets: [
@@ -59,7 +60,7 @@ function GpaCard(props: Props): JSX.Element {
 
   return (
     <Box boxShadow={1} padding='5px'>
-      <p>あなたの GPA は 4.0 です</p>
+      <p>あなたの GPA は {gpa.slice(0, gpa.length - 1)} です</p>
       <Box display='flex' flexDirection='column' alignItems='center'>
         <Box width='50%' minWidth='300px'>
           <Bar data={data} options={options} />
