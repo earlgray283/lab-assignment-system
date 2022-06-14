@@ -1,7 +1,7 @@
 package models
 
 type LabList struct {
-	Labs []LabList `json:"labs,omitempty"`
+	Labs []*Lab `json:"labs,omitempty"`
 }
 
 type Lab struct {
