@@ -5,7 +5,7 @@ import { ApiError } from './models/api-error';
 
 export async function fetchGpa(): Promise<number> {
   try {
-    const resp = await http.get<Gpa>('/grades/gpa');
+    const resp = await http.get<Gpa>('/grades/me');
     return resp.data.gpa;
   } catch (e: unknown) {
     if (e instanceof AxiosError) {
