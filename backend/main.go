@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	_ "time/tzdata"
+
 	"cloud.google.com/go/datastore"
 	firebase "firebase.google.com/go"
 	"github.com/joho/godotenv"
