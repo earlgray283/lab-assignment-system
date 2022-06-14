@@ -8,46 +8,62 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"firebase.google.com/go/auth"
 	"github.com/gin-gonic/gin"
 )
 
 func (srv *Server) GradesRouter() {
 	gradesRouter := srv.r.Group("/grades")
+	gradesRouter.Use(srv.Authentication())
 	{
-		gradesRouter.POST("/", srv.HandlePostGrade())
+		gradesRouter.GET("/", srv.HandleGetGpas())
+		gradesRouter.GET("/me", srv.HandleGetOwnGpa())
 		gradesRouter.POST("/generate-token", srv.HandleGenerateToken())
-		gradesRouter.GET("/gpa", srv.HandleGetGpa())
 	}
+
+	// authentication middleware を適用しない
+	srv.r.POST("/grades", srv.HandlePostGrade())
 }
 
-func (srv *Server) HandleGetGpa() gin.HandlerFunc {
+func (srv *Server) HandleGetOwnGpa() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		authToken := c.MustGet("authToken").(*auth.Token)
 		ctx := c.Request.Context()
-		authToken, err := srv.GetAuthToken(c)
-		if err != nil {
-			srv.logger.Println(err)
-			c.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
+
 		var grade repository.Grade
 		if err := srv.dc.Get(ctx, repository.NewGradeKey(authToken.UID), &grade); err != nil {
-			srv.logger.Println(err)
-			AbortWithErrorJSON(c, NewError(http.StatusNotFound, "there are no grades"))
+			if err == datastore.ErrNoSuchEntity {
+				AbortWithErrorJSON(c, NewError(http.StatusNotFound, "there are no grades"))
+			} else {
+				srv.logger.Println(err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+			}
 			return
 		}
 		c.JSON(http.StatusOK, &grade)
+	}
+}
+func (srv *Server) HandleGetGpas() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+		var grades []repository.Grade
+		if _, err := srv.dc.GetAll(ctx, datastore.NewQuery(repository.KindGrade), &grades); err != nil {
+			if err == datastore.ErrNoSuchEntity {
+				AbortWithErrorJSON(c, NewError(http.StatusNotFound, "there are no grades"))
+			} else {
+				srv.logger.Println(err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+			}
+			return
+		}
+		c.JSON(http.StatusOK, &grades)
 	}
 }
 
 func (srv *Server) HandleGenerateToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
-		authToken, err := srv.GetAuthToken(c)
-		if err != nil {
-			srv.logger.Println(err)
-			c.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
+		authToken := c.MustGet("authToken").(*auth.Token)
 
 		token := lib.MakeRandomString(32)
 		now := time.Now()
