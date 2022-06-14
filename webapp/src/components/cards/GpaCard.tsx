@@ -43,7 +43,7 @@ const options = {
 
 interface Props {
   data: number[];
-  gpa: number | null;
+  gpa: number;
 }
 
 function GpaCard(props: Props): JSX.Element {
