@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"lab-assignment-system-backend/repository"
 	"log"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -19,17 +20,22 @@ type LabGpa struct {
 	UpdatedAt time.Time
 }
 
+type LabGpaStorage struct {
+	m map[string]*LabGpa
+	sync.RWMutex
+}
+
 type GpaWorker struct {
 	c        *datastore.Client
 	interval time.Duration
-	m        map[string]*LabGpa
+	m        *LabGpaStorage
 }
 
 func NewGpaWorker(c *datastore.Client, interval time.Duration) *GpaWorker {
 	return &GpaWorker{
 		c:        c,
 		interval: interval,
-		m:        map[string]*LabGpa{},
+		m:        &LabGpaStorage{m: map[string]*LabGpa{}},
 	}
 }
 
@@ -78,7 +84,9 @@ func (g *GpaWorker) runnerFunc(c *cron.Cron) func() {
 			slices.SortFunc(labGpa.Gpas2, cmpFunc)
 			slices.SortFunc(labGpa.Gpas3, cmpFunc)
 		}
-		g.m = m
+		g.m.Lock()
+		g.m.m = m
+		g.m.Unlock()
 		log.Println("done")
 	}
 }
