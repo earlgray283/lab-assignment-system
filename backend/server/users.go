@@ -42,6 +42,7 @@ func (srv *Server) HandleGetUser() gin.HandlerFunc {
 			Email:         user.Email,
 			StudentNumber: user.StudentNumber,
 			Name:          user.Name,
+			Gpa:           user.Gpa,
 			Lab1:          user.Lab1,
 			Lab2:          user.Lab2,
 			Lab3:          user.Lab3,
