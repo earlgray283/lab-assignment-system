@@ -6,11 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"cloud.google.com/go/datastore"
 	"github.com/gin-gonic/gin"
 )
-
-const LabsCapacity = 1024
 
 func (srv *Server) LabsRouter() {
 	gradesRouter := srv.r.Group("/labs")
@@ -26,34 +23,15 @@ func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
 
 		var repoLabs []*repository.Lab
 		labIds := strings.Split(c.Query("labIds"), "+")
-		if len(labIds) == 0 {
-			repoLabs2 := make([]*repository.Lab, 0, LabsCapacity)
-			if _, err := srv.dc.GetAll(ctx, datastore.NewQuery(repository.KindLab), &repoLabs2); err != nil {
-				srv.logger.Println(err)
-				c.AbortWithStatus(http.StatusInternalServerError)
-				return
-			}
-			repoLabs = repoLabs2
-		} else {
-			repoLabs2 := make([]*repository.Lab, len(labIds))
-			repoKeys := make([]*datastore.Key, len(labIds))
-			for i, labId := range labIds {
-				repoKeys[i] = repository.NewLabKey(labId)
-			}
-			if err := srv.dc.GetMulti(ctx, repoKeys, repoLabs2); err != nil {
-				srv.logger.Println(err)
-				if merr, ok := err.(datastore.MultiError); ok {
-					for _, err := range merr {
-						if err == datastore.ErrNoSuchEntity {
-							c.AbortWithStatus(http.StatusNotFound)
-							return
-						}
-					}
-				}
-				c.AbortWithStatus(http.StatusInternalServerError)
-				return
-			}
-			repoLabs = repoLabs2
+		repoLabs, ok, err := repository.FetchAllLabs(ctx, srv.dc, labIds)
+		if err != nil {
+			srv.logger.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		if !ok {
+			AbortWithErrorJSON(c, NewError(http.StatusNotFound, "no such lab"))
+			return
 		}
 
 		labs := make([]*models.Lab, len(repoLabs))
