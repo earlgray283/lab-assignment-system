@@ -8,7 +8,6 @@ export const http = axios.create({
       try {
         return JSON.parse(data, (k: string, val: unknown) => {
           if (typeof val === 'string') {
-            console.log(val);
             const date = new Date(val);
             if (Number.isNaN(date.getDate())) {
               return val;

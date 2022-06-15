@@ -8,8 +8,9 @@ import {
 } from '@mui/material';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
-
-import { labList } from '../../types/lab-list';
+import { fetchLabs } from '../../apis/labs';
+import { LabList } from '../../apis/models/lab';
+import { sleep } from '../../lib/util';
 
 export interface SignupFormInput {
   email: string;
@@ -22,12 +23,24 @@ export interface SignupFormInput {
   lab3: string;
 }
 
+let labList: LabList | undefined;
+
+function useLabList(): LabList {
+  if (labList === undefined) {
+    throw fetchLabs()
+      .then((data) => (labList = data))
+      .catch(() => sleep(2000));
+  }
+  return labList;
+}
+
 export function SignupForm(props: {
   onSubmit: (data: SignupFormInput) => void;
   errorMessage?: string;
   onError?: (e: unknown) => void;
 }): JSX.Element {
   const { control, handleSubmit, watch } = useForm<SignupFormInput>();
+  const labList = useLabList();
 
   return (
     <Stack
@@ -215,9 +228,9 @@ export function SignupForm(props: {
               {...field}
             >
               <MenuItem value={''}>未選択</MenuItem>
-              {labList.map((lab) => (
-                <MenuItem value={lab} key={lab}>
-                  {lab}
+              {labList.labs.map((lab) => (
+                <MenuItem value={lab.id} key={lab.id}>
+                  {lab.name}
                 </MenuItem>
               ))}
             </TextField>
@@ -241,9 +254,9 @@ export function SignupForm(props: {
               {...field}
             >
               <MenuItem value={''}>未選択</MenuItem>
-              {labList.map((lab) => (
-                <MenuItem value={lab} key={lab}>
-                  {lab}
+              {labList.labs.map((lab) => (
+                <MenuItem value={lab.id} key={lab.id}>
+                  {lab.name}
                 </MenuItem>
               ))}
             </TextField>
@@ -267,9 +280,9 @@ export function SignupForm(props: {
               {...field}
             >
               <MenuItem value={''}>未選択</MenuItem>
-              {labList.map((lab) => (
-                <MenuItem value={lab} key={lab}>
-                  {lab}
+              {labList.labs.map((lab) => (
+                <MenuItem value={lab.id} key={lab.id}>
+                  {lab.name}
                 </MenuItem>
               ))}
             </TextField>
