@@ -9,4 +9,12 @@ export interface Lab {
   firstChoice: number;
   secondChoice: number;
   thirdChoice: number;
+  grades?: Labgpa;
+}
+
+export interface Labgpa {
+  gpas1: number[];
+  gpas2: number[];
+  gpas3: number[];
+  updatedAt: Date;
 }

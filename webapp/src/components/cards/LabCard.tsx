@@ -20,7 +20,7 @@ function useLabList(labIds: string[]): LabList {
   return labList;
 }
 
-function LabCard(props: { labIds: string[] }): JSX.Element {
+function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
   console.log(props.labIds);
 
   const labList = useLabList(props.labIds);
@@ -32,7 +32,17 @@ function LabCard(props: { labIds: string[] }): JSX.Element {
         justifyContent='center'
         alignItems='center'
       >
-        {labList.labs.map((lab) => {
+        {labList.labs.map((lab, i) => {
+          let rank = -1;
+          if (lab.grades) {
+            if (i == 0) {
+              rank = lab.grades.gpas1.indexOf(props.gpa) + 1;
+            } else if (i == 1) {
+              rank = lab.grades.gpas2.indexOf(props.gpa) + 1;
+            } else {
+              rank = lab.grades.gpas3.indexOf(props.gpa) + 1;
+            }
+          }
           const labMag =
             ((lab.firstChoice + lab.secondChoice + lab.thirdChoice) /
               lab.capacity) *
@@ -48,20 +58,26 @@ function LabCard(props: { labIds: string[] }): JSX.Element {
             >
               <Typography variant='h5'>
                 {lab.name}{' '}
-                {/* {!lab.name ? (
+                {rank <= lab.capacity ? (
                   <CheckIcon fontSize='small' sx={{ color: 'green' }} />
                 ) : (
                   <CloseIcon fontSize='small' sx={{ color: 'red' }} />
-                )} */}
+                )}
               </Typography>
               <Divider />
-              <Stack marginTop='5px'>
-                <Box>競争率: {<span>{labMag}</span>} %</Box>
-                <Box>定員: {lab.capacity}人</Box>
-                <Box marginLeft='10px'> - 第1希望: {lab.firstChoice}人</Box>
-                <Box marginLeft='10px'> - 第2希望: {lab.secondChoice}人</Box>
-                <Box marginLeft='10px'> - 第3希望: {lab.thirdChoice}人</Box>
-              </Stack>
+              <Box display='flex'>
+                <Stack marginTop='5px'>
+                  <Box>競争率: {<span>{labMag}</span>} %</Box>
+                  <Box>定員: {lab.capacity}人</Box>
+                  <Box>
+                    志望者数:{' '}
+                    {lab.firstChoice + lab.secondChoice + lab.thirdChoice}人
+                  </Box>
+                  <Box marginLeft='10px'> - 第1希望: {lab.firstChoice}人</Box>
+                  <Box marginLeft='10px'> - 第2希望: {lab.secondChoice}人</Box>
+                  <Box marginLeft='10px'> - 第3希望: {lab.thirdChoice}人</Box>
+                </Stack>
+              </Box>
               <Box display='flex' flexDirection='column' alignItems='center'>
                 <Box width='75%'>
                   <Doughnut
