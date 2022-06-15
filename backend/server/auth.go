@@ -133,7 +133,9 @@ func (srv *Server) HandleSignout() gin.HandlerFunc {
 			AbortWithErrorJSON(c, NewError(http.StatusBadRequest, "no session cookie"))
 			return
 		}
-		sessionCookie.MaxAge = -1
+		sessionCookie.Value = ""
+		sessionCookie.MaxAge = 0
+		sessionCookie.Path = "/"
 		http.SetCookie(c.Writer, sessionCookie)
 	}
 }

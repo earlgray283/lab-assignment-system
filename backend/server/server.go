@@ -69,7 +69,7 @@ func (srv *Server) GetAuthToken(c *gin.Context) (*auth.Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	authToken, err := srv.auth.VerifySessionCookie(c.Request.Context(), sessionCookie)
+	authToken, err := srv.auth.VerifySessionCookieAndCheckRevoked(c.Request.Context(), sessionCookie)
 	if err != nil {
 		return nil, err
 	}
