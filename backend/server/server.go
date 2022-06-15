@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"time"
 
 	"cloud.google.com/go/datastore"
 	"firebase.google.com/go/auth"
@@ -15,6 +16,7 @@ type Server struct {
 	dc          *datastore.Client
 	auth        *auth.Client
 	frontendUrl string
+	gpaWorker   *GpaWorker
 }
 
 const ExcludeLowerPoint = 60
@@ -37,7 +39,8 @@ func New(dc *datastore.Client, auth *auth.Client, frontendUrl, gakujoUrl string)
 	r.Use(cors.New(*corsConfig))
 	logger := log.Default()
 	gin.DefaultWriter = logger.Writer()
-	srv := &Server{r, logger, dc, auth, frontendUrl}
+	gpaWorker := NewGpaWorker(dc, time.Hour)
+	srv := &Server{r, logger, dc, auth, frontendUrl, gpaWorker}
 
 	srv.GradesRouter()
 	srv.AuthRouter()
@@ -48,7 +51,17 @@ func New(dc *datastore.Client, auth *auth.Client, frontendUrl, gakujoUrl string)
 }
 
 func (srv *Server) Run(addr ...string) error {
-	return srv.r.Run(addr...)
+	errc := make(chan error)
+	go func() {
+		srv.gpaWorker.Run()
+	}()
+	go func() {
+		err := srv.r.Run(addr...)
+		if err != nil {
+			errc <- err
+		}
+	}()
+	return <-errc
 }
 
 func (srv *Server) GetAuthToken(c *gin.Context) (*auth.Token, error) {
