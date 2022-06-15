@@ -15,7 +15,8 @@ import (
 )
 
 type LabGpaStorage struct {
-	m map[string]*models.LabGpa
+	m    map[string]*models.LabGpa
+	gpas []float64
 	sync.RWMutex
 }
 
@@ -40,6 +41,10 @@ func (g *GpaWorker) Run() {
 	c.Run()
 }
 
+func (g *GpaWorker) GetGpas() []float64 {
+	return g.m.gpas
+}
+
 func (g *GpaWorker) Get(labId string) *models.LabGpa {
 	g.m.Lock()
 	defer g.m.Unlock()
@@ -58,10 +63,12 @@ func (g *GpaWorker) runnerFunc(c *cron.Cron) func() {
 			return
 		}
 		log.Println("Totaling Users Gpa...")
-		for _, user := range users {
+		gpas := make([]float64, len(users))
+		for i, user := range users {
 			if user.Gpa == nil {
 				continue
 			}
+			gpas[i] = *user.Gpa
 			if _, ok := m[user.Lab1]; !ok {
 				m[user.Lab1] = &models.LabGpa{}
 			}
@@ -86,6 +93,7 @@ func (g *GpaWorker) runnerFunc(c *cron.Cron) func() {
 		}
 		g.m.Lock()
 		g.m.m = m
+		g.m.gpas = gpas
 		g.m.Unlock()
 		log.Println("done")
 	}

@@ -16,11 +16,23 @@ func (srv *Server) GradesRouter() {
 	gradesRouter := srv.r.Group("/grades")
 	gradesRouter.Use(srv.Authentication())
 	{
+		gradesRouter.GET("", srv.HandleGetAllGrades())
 		gradesRouter.POST("/generate-token", srv.HandleGenerateToken())
 	}
 
 	// authentication middleware を適用しない
 	srv.r.POST("/grades", srv.HandlePostGrade())
+}
+
+func (srv *Server) HandleGetAllGrades() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		gpas := srv.gpaWorker.GetGpas()
+		gpaJsons := make([]*models.Gpa, len(gpas))
+		for i, gpa := range gpas {
+			gpaJsons[i] = &models.Gpa{Gpa: gpa}
+		}
+		c.JSON(http.StatusOK, gpaJsons)
+	}
 }
 
 func (srv *Server) HandleGenerateToken() gin.HandlerFunc {

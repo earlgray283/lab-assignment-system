@@ -8,8 +8,10 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
+import { fetchGrades } from '../../apis/grade';
+import { sleep } from '../../lib/util';
 import { DisplayGpa } from '../util';
 
 ChartJS.register(
@@ -42,17 +44,38 @@ const options = {
   },
 };
 
-interface Props {
-  data: number[];
-  gpa: number;
+let gpas: number[] | undefined;
+function useGpas(): number[] {
+  if (gpas === undefined) {
+    throw fetchGrades()
+      .then((data) => (gpas = data))
+      .catch(() => sleep(2000));
+  }
+  return gpas;
 }
 
-function GpaCard(props: Props): JSX.Element {
+function GpaCard(props: { gpa: number }): JSX.Element {
+  const [gpaClasses, setGpaClasses] = useState<number[]>([]);
+  const gpas = useGpas();
+  useEffect(() => {
+    const list = new Array<number>(0, 0, 0, 0, 0, 0, 0, 0);
+    for (const gpa of gpas) {
+      if (gpa < 0.5) list[0]++;
+      else if (gpa < 1.0) list[1]++;
+      else if (gpa < 1.5) list[2]++;
+      else if (gpa < 2.0) list[3]++;
+      else if (gpa < 2.5) list[4]++;
+      else if (gpa < 3.0) list[5]++;
+      else if (gpa < 3.5) list[6]++;
+      else list[7]++;
+    }
+    setGpaClasses([...list]);
+  }, [gpas]);
   const data = {
     labels,
     datasets: [
       {
-        data: props.data,
+        data: gpaClasses,
         backgroundColor: 'rgba(153, 183, 220, 0.6)',
       },
     ],

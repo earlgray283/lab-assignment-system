@@ -37,9 +37,7 @@ function Dashboard(): JSX.Element {
             から登録作業を行って下さい。
           </Alert>
         )}
-        {user.apiUser.gpa && (
-          <GpaCard data={[1, 2, 3, 4, 3, 2, 1, 0]} gpa={user.apiUser.gpa} />
-        )}
+        {user.apiUser.gpa && <GpaCard gpa={user.apiUser.gpa} />}
         {user.apiUser.gpa && (
           <LabCard
             labIds={[user.apiUser.lab1, user.apiUser.lab2, user.apiUser.lab3]}
