@@ -24,7 +24,7 @@ export function FullLayout(props: { children?: ReactNode }): JSX.Element {
     <Box
       margin='10px 0px 0px 0px'
       width='95%'
-      maxWidth='900px'
+      maxWidth='1200px'
       boxShadow={2}
       padding='20px'
     >

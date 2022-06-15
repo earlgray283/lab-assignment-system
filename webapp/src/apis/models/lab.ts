@@ -5,8 +5,8 @@ export interface LabList {
 export interface Lab {
   id: string;
   name: string;
-  capacity: string;
-  firstChoice: string;
-  secondChoice: string;
-  thirdChoice: string;
+  capacity: number;
+  firstChoice: number;
+  secondChoice: number;
+  thirdChoice: number;
 }
