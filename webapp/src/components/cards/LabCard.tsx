@@ -5,6 +5,8 @@ import { LabList } from '../../apis/models/lab';
 import { sleep } from '../../lib/util';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -23,7 +25,7 @@ function LabCard(props: { labIds: string[] }): JSX.Element {
 
   const labList = useLabList(props.labIds);
   return (
-    <Box boxShadow={1} padding='5px'>
+    <Box padding='5px'>
       <Grid
         container
         direction={'row'}
@@ -38,28 +40,23 @@ function LabCard(props: { labIds: string[] }): JSX.Element {
           return (
             <Box
               key={lab.id}
-              boxShadow={1}
+              boxShadow={2}
               margin='10px'
-              padding='5px'
+              padding='10px'
               width='30%'
               minWidth='300px'
             >
-              <Typography variant='h5'>{lab.name}</Typography>
+              <Typography variant='h5'>
+                {lab.name}{' '}
+                {/* {!lab.name ? (
+                  <CheckIcon fontSize='small' sx={{ color: 'green' }} />
+                ) : (
+                  <CloseIcon fontSize='small' sx={{ color: 'red' }} />
+                )} */}
+              </Typography>
               <Divider />
               <Stack marginTop='5px'>
-                <Box>
-                  倍率:{' '}
-                  {
-                    <span
-                      style={
-                        labMag > 100 ? { color: 'red' } : { color: 'green' }
-                      }
-                    >
-                      {labMag}
-                    </span>
-                  }{' '}
-                  %
-                </Box>
+                <Box>競争率: {<span>{labMag}</span>} %</Box>
                 <Box>定員: {lab.capacity}人</Box>
                 <Box marginLeft='10px'> - 第1希望: {lab.firstChoice}人</Box>
                 <Box marginLeft='10px'> - 第2希望: {lab.secondChoice}人</Box>
@@ -78,9 +75,9 @@ function LabCard(props: { labIds: string[] }): JSX.Element {
                             lab.thirdChoice,
                           ],
                           backgroundColor: [
-                            'rgba(255, 99, 132, 0.6)',
-                            'rgba(54, 162, 235, 0.6)',
-                            'rgba(255, 206, 86, 0.6)',
+                            '#AFD7F7CC',
+                            '#84A4D4CC',
+                            '#222E80CC',
                           ],
                         },
                       ],
