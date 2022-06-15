@@ -17,8 +17,8 @@ type Lab struct {
 }
 
 type LabGpa struct {
-	Gpas1     []float64
-	Gpas2     []float64
-	Gpas3     []float64
-	UpdatedAt time.Time
+	Gpas1     []float64 `json:"gpas1,omitempty"`
+	Gpas2     []float64 `json:"gpas2,omitempty"`
+	Gpas3     []float64 `json:"gpas3,omitempty"`
+	UpdatedAt time.Time `json:"updatedAt,omitempty"`
 }
