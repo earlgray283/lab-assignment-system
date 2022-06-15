@@ -21,12 +21,6 @@ function Dashboard(): JSX.Element {
     return <div />; // /auth/signin にリダイレクトされることが保証される
   }
 
-  console.log(user.apiUser, [
-    user.apiUser.lab1,
-    user.apiUser.lab2,
-    user.apiUser.lab3,
-  ]);
-
   return (
     <FullLayout>
       <Stack spacing={2}>

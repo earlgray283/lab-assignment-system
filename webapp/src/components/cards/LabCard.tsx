@@ -21,8 +21,6 @@ function useLabList(labIds: string[]): LabList {
 }
 
 function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
-  console.log(props.labIds);
-
   const labList = useLabList(props.labIds);
   return (
     <Box padding='5px'>
