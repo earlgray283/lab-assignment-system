@@ -13,10 +13,13 @@ import (
 )
 
 type Lab struct {
-	ID        string
-	Name      string
-	Capacity  int
-	CreatedAt time.Time
+	ID           string
+	Name         string
+	Capacity     int
+	FirstChoice  int
+	SecondChoice int
+	ThirdChice   int
+	CreatedAt    time.Time
 }
 
 const KindLab = "lab"
@@ -38,6 +41,7 @@ func main() {
 	}
 	defer f.Close()
 	sc := bufio.NewScanner(f)
+	mutations := make([]*datastore.Mutation, 0, 1024)
 	for sc.Scan() {
 		tokens := strings.Split(sc.Text(), ",")
 		capacity, _ := strconv.Atoi(tokens[2])
@@ -47,8 +51,9 @@ func main() {
 			Capacity:  capacity,
 			CreatedAt: time.Now(),
 		}
-		if _, err := dc.Put(context.Background(), NewLabKey(lab.ID), lab); err != nil {
-			log.Fatal(err)
-		}
+		mutations = append(mutations, datastore.NewInsert(NewLabKey(lab.ID), lab))
+	}
+	if _, err := dc.Mutate(context.Background(), mutations...); err != nil {
+		log.Fatal(err)
 	}
 }
