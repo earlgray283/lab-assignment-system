@@ -1,14 +1,14 @@
-import { Box, Divider, Grid, Stack, Typography } from '@mui/material';
+import { Box, Divider, Grid, Stack, Typography, Tooltip } from '@mui/material';
 import React from 'react';
 import { fetchLabs } from '../../apis/labs';
 import { LabList } from '../../apis/models/lab';
 import { sleep } from '../../lib/util';
 import { Doughnut } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Chart as ChartJS, ArcElement, Legend } from 'chart.js';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, Legend);
 
 let labList: LabList | undefined;
 function useLabList(labIds: string[]): LabList {
@@ -26,6 +26,7 @@ function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
     <Box padding='5px'>
       <Grid
         container
+        boxShadow={2}
         direction={'row'}
         justifyContent='center'
         alignItems='center'
@@ -49,18 +50,24 @@ function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
             <Box
               key={lab.id}
               boxShadow={2}
-              margin='10px'
+              margin='20px 10px 20px 10px'
               padding='10px'
               width='30%'
               minWidth='300px'
             >
               <Typography variant='h5'>
                 {lab.name}{' '}
-                {rank <= lab.capacity ? (
-                  <CheckIcon fontSize='small' sx={{ color: 'green' }} />
-                ) : (
-                  <CloseIcon fontSize='small' sx={{ color: 'red' }} />
-                )}
+                <Tooltip
+                  title={
+                    rank <= lab.capacity ? '配属可能です' : '配属ができません'
+                  }
+                >
+                  {rank <= lab.capacity ? (
+                    <CheckIcon fontSize='small' sx={{ color: 'green' }} />
+                  ) : (
+                    <CloseIcon fontSize='small' sx={{ color: 'red' }} />
+                  )}
+                </Tooltip>
               </Typography>
               <Divider />
               <Box display='flex'>

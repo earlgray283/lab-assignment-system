@@ -59,7 +59,7 @@ function GpaCard(props: Props): JSX.Element {
   };
 
   return (
-    <Box boxShadow={1} padding='5px'>
+    <Box boxShadow={2} padding='5px'>
       <p>あなたの GPA は {gpa.slice(0, gpa.length - 1)} です</p>
       <Box display='flex' flexDirection='column' alignItems='center'>
         <Box width='50%' minWidth='300px'>
