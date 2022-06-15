@@ -74,7 +74,7 @@ func (srv *Server) HandlePostGrade() gin.HandlerFunc {
 			}
 			return
 		}
-		if registerToken.Expires.After(time.Now()) {
+		if time.Now().After(registerToken.Expires) {
 			AbortWithErrorJSON(c, NewError(http.StatusBadRequest, "invalid register-token"))
 			return
 		}
