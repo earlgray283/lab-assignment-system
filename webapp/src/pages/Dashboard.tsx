@@ -40,9 +40,9 @@ function Dashboard(): JSX.Element {
   return (
     <FullLayout>
       <Stack spacing={2}>
-        {!user.emailVerified && (
+        {!user.firebaseUser.emailVerified && (
           <Alert severity='error'>
-            {user.email}{' '}
+            {user.firebaseUser.email}{' '}
             宛に確認リンクを送信しました。メールアドレスの確認をしてください
           </Alert>
         )}

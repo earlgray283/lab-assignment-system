@@ -55,7 +55,7 @@ export function Appbar(): JSX.Element {
                 onClick={(event) => setAnchorEl(event.currentTarget)}
                 sx={{ color: 'white' }}
               >
-                {user.displayName ?? '<名前未設定>'}
+                {user.firebaseUser.displayName ?? '<名前未設定>'}
               </Button>
             ) : (
               <TypographyLink to='/auth/signin'>SIGN IN</TypographyLink>

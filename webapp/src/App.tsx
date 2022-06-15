@@ -1,5 +1,6 @@
 import { Box, CssBaseline, LinearProgress } from '@mui/material';
-import { User, getAuth } from 'firebase/auth';
+import { User as FirebaseUser, getAuth } from 'firebase/auth';
+import { ApiUser } from './apis/models/user';
 import React, {
   createContext,
   lazy,
@@ -11,11 +12,17 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 import { Appbar } from './components/Appbar';
 import RegisterGrades from './pages/RegisterGrades';
+import { fetchUser } from './apis/user';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Signin = lazy(() => import('./pages/Signin'));
 const Signup = lazy(() => import('./pages/Signup'));
+
+interface User {
+  firebaseUser: FirebaseUser;
+  apiUser: ApiUser;
+}
 
 export const UserContext = createContext<User | null | undefined>(undefined);
 export const LoadingStateContext = createContext(false);
@@ -31,9 +38,14 @@ function App(): JSX.Element {
   const auth = getAuth();
 
   useEffect(() => {
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged(async (firebaseUser) => {
+      if (firebaseUser) {
+        const apiUser = await fetchUser();
+        setCurrentUser({ firebaseUser, apiUser });
+      } else {
+        setCurrentUser(null);
+      }
       setLoading(false);
-      setCurrentUser(user);
     });
   }, []);
 
