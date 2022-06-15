@@ -56,9 +56,18 @@ func (g *GpaWorker) runnerFunc(c *cron.Cron) func() {
 			if user.Gpa == nil {
 				continue
 			}
-			m[user.Lab1].Gpas1 = append(g.m[user.Lab1].Gpas1, *user.Gpa)
-			m[user.Lab2].Gpas2 = append(g.m[user.Lab2].Gpas2, *user.Gpa)
-			m[user.Lab3].Gpas3 = append(g.m[user.Lab3].Gpas3, *user.Gpa)
+			if _, ok := m[user.Lab1]; !ok {
+				m[user.Lab1] = &LabGpa{}
+			}
+			if _, ok := m[user.Lab2]; !ok {
+				m[user.Lab2] = &LabGpa{}
+			}
+			if _, ok := m[user.Lab3]; !ok {
+				m[user.Lab3] = &LabGpa{}
+			}
+			m[user.Lab1].Gpas1 = append(m[user.Lab1].Gpas1, *user.Gpa)
+			m[user.Lab2].Gpas2 = append(m[user.Lab2].Gpas2, *user.Gpa)
+			m[user.Lab3].Gpas3 = append(m[user.Lab3].Gpas3, *user.Gpa)
 		}
 
 		cmpFunc := func(a, b float64) bool {
