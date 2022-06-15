@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"lab-assignment-system-backend/repository"
+	"lab-assignment-system-backend/server/models"
 	"log"
 	"sync"
 	"time"
@@ -13,15 +14,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type LabGpa struct {
-	Gpas1     []float64
-	Gpas2     []float64
-	Gpas3     []float64
-	UpdatedAt time.Time
-}
-
 type LabGpaStorage struct {
-	m map[string]*LabGpa
+	m map[string]*models.LabGpa
 	sync.RWMutex
 }
 
@@ -35,7 +29,7 @@ func NewGpaWorker(c *datastore.Client, interval time.Duration) *GpaWorker {
 	return &GpaWorker{
 		c:        c,
 		interval: interval,
-		m:        &LabGpaStorage{m: map[string]*LabGpa{}},
+		m:        &LabGpaStorage{m: map[string]*models.LabGpa{}},
 	}
 }
 
@@ -46,11 +40,17 @@ func (g *GpaWorker) Run() {
 	c.Run()
 }
 
+func (g *GpaWorker) Get(labId string) *models.LabGpa {
+	g.m.Lock()
+	defer g.m.Unlock()
+	return g.m.m[labId]
+}
+
 func (g *GpaWorker) runnerFunc(c *cron.Cron) func() {
 	return func() {
 		log.Println("Running Gpa Worker...")
 		ctx := context.Background()
-		m := map[string]*LabGpa{}
+		m := map[string]*models.LabGpa{}
 		users := make([]*repository.User, 0)
 		log.Println("Fetching All Users...")
 		if _, err := g.c.GetAll(ctx, datastore.NewQuery(repository.KindUser), &users); err != nil {
@@ -63,13 +63,13 @@ func (g *GpaWorker) runnerFunc(c *cron.Cron) func() {
 				continue
 			}
 			if _, ok := m[user.Lab1]; !ok {
-				m[user.Lab1] = &LabGpa{}
+				m[user.Lab1] = &models.LabGpa{}
 			}
 			if _, ok := m[user.Lab2]; !ok {
-				m[user.Lab2] = &LabGpa{}
+				m[user.Lab2] = &models.LabGpa{}
 			}
 			if _, ok := m[user.Lab3]; !ok {
-				m[user.Lab3] = &LabGpa{}
+				m[user.Lab3] = &models.LabGpa{}
 			}
 			m[user.Lab1].Gpas1 = append(m[user.Lab1].Gpas1, *user.Gpa)
 			m[user.Lab2].Gpas2 = append(m[user.Lab2].Gpas2, *user.Gpa)

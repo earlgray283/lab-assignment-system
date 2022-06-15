@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"lab-assignment-system-backend/repository"
 	"lab-assignment-system-backend/server/models"
 	"net/http"
@@ -23,6 +24,17 @@ func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
 
 		var repoLabs []*repository.Lab
 		labIds := strings.Split(c.Query("labIds"), "+")
+		var optFields []string
+		if optFieldsText, ok := c.GetQuery("optFields"); ok {
+			optFields = strings.Split(optFieldsText, "+")
+		}
+		// TODO: definition type を使うなりする
+		for _, optField := range optFields {
+			if optField != "grade" {
+				AbortWithErrorJSON(c, NewError(http.StatusBadRequest, fmt.Sprintln("optField", optField, "is not supported")))
+				return
+			}
+		}
 		repoLabs, ok, err := repository.FetchAllLabs(ctx, srv.dc, labIds)
 		if err != nil {
 			srv.logger.Println(err)
@@ -43,6 +55,12 @@ func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
 				FirstChoice:  repoLab.FirstChoice,
 				SecondChoice: repoLab.SecondChoice,
 				ThirdChoice:  repoLab.ThirdChice,
+			}
+			for _, optField := range optFields {
+				switch optField {
+				case "grade":
+					labs[i].Grades = srv.gpaWorker.Get(repoLab.ID)
+				}
 			}
 		}
 

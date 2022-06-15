@@ -13,7 +13,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 let labList: LabList | undefined;
 function useLabList(labIds: string[]): LabList {
   if (labList === undefined) {
-    throw fetchLabs(labIds)
+    throw fetchLabs(labIds, ['grade'])
       .then((data) => (labList = data))
       .catch(() => sleep(2000));
   }
