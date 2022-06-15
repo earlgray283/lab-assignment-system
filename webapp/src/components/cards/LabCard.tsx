@@ -7,6 +7,7 @@ import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Legend } from 'chart.js';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import { DisplayGpa } from '../util';
 
 ChartJS.register(ArcElement, Legend);
 
@@ -33,15 +34,25 @@ function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
       >
         {labList.labs.map((lab, i) => {
           let rank = -1;
-          if (lab.grades) {
-            if (i == 0) {
-              rank = lab.grades.gpas1.indexOf(props.gpa) + 1;
-            } else if (i == 1) {
-              rank = lab.grades.gpas2.indexOf(props.gpa) + 1;
-            } else {
-              rank = lab.grades.gpas3.indexOf(props.gpa) + 1;
-            }
+          if (!lab.grades) {
+            // unreachable
+            return <div />;
           }
+          if (i == 0) {
+            rank = lab.grades.gpas1.indexOf(props.gpa) + 1;
+          } else if (i == 1) {
+            rank = lab.grades.gpas2.indexOf(props.gpa) + 1;
+          } else {
+            rank = lab.grades.gpas3.indexOf(props.gpa) + 1;
+          }
+          // TODO: omitempty を直せ
+          const gpas = Array.prototype.concat(
+            lab.grades.gpas1 ?? [],
+            lab.grades.gpas2 ?? [],
+            lab.grades.gpas3 ?? []
+          );
+          gpas.sort((a, b) => b - a);
+          const gpaAveg = gpas.reduce((prev, cur) => prev + cur) / gpas.length;
           const labMag =
             ((lab.firstChoice + lab.secondChoice + lab.thirdChoice) /
               lab.capacity) *
@@ -72,8 +83,26 @@ function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
               <Divider />
               <Box display='flex'>
                 <Stack marginTop='5px'>
-                  <Box>競争率: {<span>{labMag}</span>} %</Box>
+                  <Box>競争率: {<span>{labMag}</span>}%</Box>
                   <Box>定員: {lab.capacity}人</Box>
+                  <Box>GPA(最小は上位{lab.capacity - 1}名中)</Box>
+                  <Box marginLeft='10px'>
+                    {' '}
+                    - 平均: <DisplayGpa gpa={gpaAveg} />
+                  </Box>
+                  <Box marginLeft='10px'>
+                    {' '}
+                    - 最大: <DisplayGpa gpa={gpas[0]} />
+                  </Box>
+                  <Box marginLeft='10px'>
+                    {' '}
+                    - 最小:{' '}
+                    <DisplayGpa
+                      gpa={
+                        gpas.at(lab.capacity - 1) ?? gpas.at(gpas.length - 1)
+                      }
+                    />
+                  </Box>
                   <Box>
                     志望者数:{' '}
                     {lab.firstChoice + lab.secondChoice + lab.thirdChoice}人
