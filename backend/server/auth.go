@@ -33,7 +33,7 @@ func (srv *Server) AuthRouter() {
 	{
 		gradesRouter.POST("/signin", srv.HandleSignin())
 		gradesRouter.POST("/signup", srv.HandleSignup())
-		gradesRouter.POST("/signout", srv.HandleSignout())
+		gradesRouter.POST("/signout", srv.HandleSignout()).Use(srv.Authentication())
 	}
 }
 
@@ -61,14 +61,35 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-		user, userKey := repository.NewUser(userdata.UID, userdata.Email, signupForm.StudentNumber, signupForm.Name)
-		lab1, lab1key := repository.NewLabSurvey(user.UID, 1, signupForm.Lab1)
-		lab2, lab2key := repository.NewLabSurvey(user.UID, 2, signupForm.Lab2)
-		lab3, lab3key := repository.NewLabSurvey(user.UID, 3, signupForm.Lab3)
-		dsts := []any{user, lab1, lab2, lab3}
-		keys := []*datastore.Key{userKey, lab1key, lab2key, lab3key}
+		user, userKey := repository.NewUser(
+			userdata.UID,
+			userdata.Email,
+			signupForm.StudentNumber,
+			signupForm.Name,
+			signupForm.Lab1,
+			signupForm.Lab2,
+			signupForm.Lab3,
+		)
+		labIds := []string{signupForm.Lab1, signupForm.Lab2, signupForm.Lab3}
 		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-			if _, err := tx.PutMulti(keys, dsts); err != nil {
+			mutations := make([]*datastore.Mutation, 0, 4)
+			mutations = append(mutations, datastore.NewInsert(userKey, user))
+			for i, labId := range labIds {
+				var lab repository.Lab
+				key := repository.NewLabKey(labId)
+				if err := tx.Get(key, &lab); err != nil {
+					return err
+				}
+				if i == 0 {
+					lab.FirstChoice++
+				} else if i == 1 {
+					lab.SecondChoice++
+				} else {
+					lab.ThirdChice++
+				}
+				mutations = append(mutations, datastore.NewUpdate(key, &lab))
+			}
+			if _, err := tx.Mutate(mutations...); err != nil {
 				return err
 			}
 			return nil

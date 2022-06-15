@@ -7,10 +7,13 @@ import (
 )
 
 type Lab struct {
-	ID        string
-	Name      string
-	Capacity  int
-	CreatedAt time.Time
+	ID           string
+	Name         string
+	Capacity     int
+	FirstChoice  int
+	SecondChoice int
+	ThirdChice   int
+	CreatedAt    time.Time
 }
 
 const KindLab = "lab"
