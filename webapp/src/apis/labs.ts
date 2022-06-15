@@ -3,9 +3,13 @@ import { AxiosError } from 'axios';
 import { http } from '../lib/axios';
 import { ApiError } from './models/api-error';
 
-export async function fetchLabs(): Promise<LabList> {
+export async function fetchLabs(labIds?: string[]): Promise<LabList> {
   try {
-    const resp = await http.get<LabList>('/labs');
+    const resp = await http.get<LabList>('/labs', {
+      params: {
+        labIds: labIds && labIds.join('+'),
+      },
+    });
     return resp.data;
   } catch (e: unknown) {
     if (e instanceof AxiosError) {

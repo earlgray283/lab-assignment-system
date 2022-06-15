@@ -1,5 +1,5 @@
 import { Alert, Stack } from '@mui/material';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect } from 'react';
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -7,9 +7,29 @@ import { UserContext } from '../App';
 import GpaCard from '../components/cards/GpaCard';
 import { FullLayout } from '../components/layout';
 import { fetchGpa } from '../apis/grade';
+import { sleep } from '../lib/util';
+import LabCard from '../components/cards/LabCard';
+
+let gpa: number | null | undefined;
+function useGpa(): number | null {
+  if (gpa === undefined) {
+    throw fetchGpa()
+      .then((data) => (gpa = data))
+      .catch((e) => {
+        if (e instanceof Error) {
+          if (e.message === 'there are no grades') {
+            gpa = null;
+            return;
+          }
+        }
+        return sleep(2000);
+      });
+  }
+  return gpa;
+}
 
 function Dashboard(): JSX.Element {
-  const [gpa, setGpa] = useState<number | null | undefined>(undefined);
+  const gpa = useGpa();
   const user = useContext(UserContext);
   const navigate = useNavigate();
   useEffect(() => {
@@ -18,24 +38,15 @@ function Dashboard(): JSX.Element {
     }
   }, [user]);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const gpa2 = await fetchGpa();
-        setGpa(gpa2);
-      } catch (e) {
-        if (e instanceof Error) {
-          if (e.message === 'there are no grades') {
-            setGpa(null);
-          }
-        }
-      }
-    })();
-  }, []);
-
   if (!user) {
     return <div />; // /auth/signin にリダイレクトされることが保証される
   }
+
+  console.log(user.apiUser, [
+    user.apiUser.lab1,
+    user.apiUser.lab2,
+    user.apiUser.lab3,
+  ]);
 
   return (
     <FullLayout>
@@ -54,6 +65,9 @@ function Dashboard(): JSX.Element {
           </Alert>
         )}
         {gpa && <GpaCard data={[1, 2, 3, 4, 3, 2, 1, 0]} gpa={gpa} />}
+        <LabCard
+          labIds={[user.apiUser.lab1, user.apiUser.lab2, user.apiUser.lab3]}
+        />
       </Stack>
     </FullLayout>
   );

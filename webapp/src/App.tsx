@@ -40,7 +40,7 @@ function App(): JSX.Element {
   useEffect(() => {
     auth.onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser) {
-        const apiUser = await fetchUser();
+        const apiUser = await fetchUser(firebaseUser.uid);
         setCurrentUser({ firebaseUser, apiUser });
       } else {
         setCurrentUser(null);

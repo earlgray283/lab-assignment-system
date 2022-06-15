@@ -3,9 +3,9 @@ import { AxiosError } from 'axios';
 import { http } from '../lib/axios';
 import { ApiUser } from './models/user';
 
-export async function fetchUser(): Promise<ApiUser> {
+export async function fetchUser(uid: string): Promise<ApiUser> {
   try {
-    const resp = await http.get<ApiUser>('/labs');
+    const resp = await http.get<ApiUser>(`/users/${uid}`);
     return resp.data;
   } catch (e: unknown) {
     if (e instanceof AxiosError) {
