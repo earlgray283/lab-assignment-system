@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const LabsCapacity = 1024
+
 func (srv *Server) LabsRouter() {
 	gradesRouter := srv.r.Group("/labs")
 	gradesRouter.Use(srv.Authentication())
@@ -21,17 +23,22 @@ func (srv *Server) HandleGetLabs() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 
-		repoLabs := make([]*repository.Lab, 0, 100)
-		if _, err := srv.dc.GetAll(ctx, datastore.NewQuery(repository.KindLab), repoLabs); err != nil {
+		repoLabs := make([]*repository.Lab, 0, LabsCapacity)
+		if _, err := srv.dc.GetAll(ctx, datastore.NewQuery(repository.KindLab), &repoLabs); err != nil {
+			srv.logger.Println(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
+			return
 		}
 
 		labs := make([]*models.Lab, len(repoLabs))
 		for i, repoLab := range repoLabs {
 			labs[i] = &models.Lab{
-				ID:       repoLab.ID,
-				Name:     repoLab.Name,
-				Capacity: repoLab.Capacity,
+				ID:           repoLab.ID,
+				Name:         repoLab.Name,
+				Capacity:     repoLab.Capacity,
+				FirstChoice:  repoLab.FirstChoice,
+				SecondChoice: repoLab.SecondChoice,
+				ThirdChoice:  repoLab.ThirdChice,
 			}
 		}
 
