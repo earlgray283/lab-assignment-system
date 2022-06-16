@@ -85,7 +85,7 @@ function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
                 <Stack marginTop='5px'>
                   <Box>競争率: {<span>{labMag}</span>}%</Box>
                   <Box>定員: {lab.capacity}人</Box>
-                  <Box>GPA(最小は上位{lab.capacity - 1}名中)</Box>
+                  <Box>GPA(最小は上位{lab.capacity}名中)</Box>
                   <Box marginLeft='10px'>
                     {' '}
                     - 平均: <DisplayGpa gpa={gpaAveg} />

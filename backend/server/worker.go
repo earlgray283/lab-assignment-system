@@ -63,12 +63,12 @@ func (g *GpaWorker) runnerFunc(c *cron.Cron) func() {
 			return
 		}
 		log.Println("Totaling Users Gpa...")
-		gpas := make([]float64, len(users))
-		for i, user := range users {
+		gpas := make([]float64, 0, len(users))
+		for _, user := range users {
 			if user.Gpa == nil {
 				continue
 			}
-			gpas[i] = *user.Gpa
+			gpas = append(gpas, *user.Gpa)
 			if _, ok := m[user.Lab1]; !ok {
 				m[user.Lab1] = &models.LabGpa{}
 			}
