@@ -69,7 +69,7 @@ function RegisterGrades(): JSX.Element {
         <Typography variant='body2'>
           <a
             target='_blank'
-            href='https://github.com/earlgray283/lab-assignment-system/raw/main/userscript/grades-sender.user.js'
+            href='https://greasyfork.org/ja/scripts/446551-grades-sender'
             rel='noreferrer'
           >
             UserScript のリンク
