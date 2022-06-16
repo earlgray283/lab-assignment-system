@@ -10,7 +10,7 @@ func (srv *Server) Authentication() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authToken, err := srv.GetAuthToken(c)
 		if err != nil {
-			srv.logger.Println(err)
+			srv.logger.Printf("%+v\n", err)
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}

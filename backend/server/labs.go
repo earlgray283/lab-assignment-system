@@ -13,7 +13,6 @@ import (
 
 func (srv *Server) LabsRouter() {
 	gradesRouter := srv.r.Group("/labs")
-	gradesRouter.Use(srv.Authentication())
 	{
 		gradesRouter.GET("", srv.HandleGetAllLabs())
 	}
@@ -23,7 +22,11 @@ func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 
-		labIds := strings.Split(c.Query("labIds"), "+")
+		labIdsText, ok := c.GetQuery("labIds")
+		var labIds []string
+		if ok {
+			labIds = strings.Split(labIdsText, "+")
+		}
 		var optFields []string
 		if optFieldsText, ok := c.GetQuery("optFields"); ok {
 			optFields = strings.Split(optFieldsText, "+")
@@ -39,14 +42,14 @@ func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
 		var repoLabs []*repository.Lab
 		if len(labIds) == 0 {
 			if _, err := srv.dc.GetAll(ctx, datastore.NewQuery(repository.KindLab), &repoLabs); err != nil {
-				srv.logger.Println(err)
+				srv.logger.Printf("%+v\n", err)
 				c.AbortWithStatus(http.StatusInternalServerError)
 				return
 			}
 		} else {
 			repoLabs2, ok, err := repository.FetchAllLabs(ctx, srv.dc, labIds)
 			if err != nil {
-				srv.logger.Println(err)
+				srv.logger.Printf("%+v\n", err)
 				c.AbortWithStatus(http.StatusInternalServerError)
 				return
 			}

@@ -20,13 +20,13 @@ func (srv *Server) HandleGetUser() gin.HandlerFunc {
 		ctx := c.Request.Context()
 		authToken, err := srv.GetAuthToken(c)
 		if err != nil {
-			srv.logger.Println(err)
+			srv.logger.Printf("%+v\n", err)
 			AbortWithErrorJSON(c, NewError(http.StatusUnauthorized, "not logged in"))
 			return
 		}
 		var user repository.User
 		if err := srv.dc.Get(ctx, repository.NewUserKey(authToken.UID), &user); err != nil {
-			srv.logger.Println(err)
+			srv.logger.Printf("%+v\n", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}

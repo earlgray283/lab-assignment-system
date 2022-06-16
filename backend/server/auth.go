@@ -42,7 +42,7 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 		ctx := c.Request.Context()
 		var signupForm SignupForm
 		if err := c.BindJSON(&signupForm); err != nil {
-			srv.logger.Println(err)
+			srv.logger.Printf("%+v\n", err)
 			return
 		}
 		if !validateEmail(signupForm.Email) || len(signupForm.Password) < 8 {
@@ -51,13 +51,13 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 		}
 		token, err := srv.auth.VerifyIDToken(ctx, signupForm.IdToken)
 		if err != nil {
-			srv.logger.Println(err)
+			srv.logger.Printf("%+v\n", err)
 			AbortWithErrorJSON(c, NewError(http.StatusUnauthorized, "not logged in"))
 			return
 		}
 		userdata, err := srv.auth.GetUser(ctx, token.UID)
 		if err != nil {
-			srv.logger.Println(err)
+			srv.logger.Printf("%+v\n", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
@@ -94,13 +94,13 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 			}
 			return nil
 		}); err != nil {
-			srv.logger.Println(err)
+			srv.logger.Printf("%+v\n", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
 		sessionCookie, err := makeSessionCookie(ctx, srv.auth, signupForm.IdToken)
 		if err != nil {
-			srv.logger.Println(err)
+			srv.logger.Printf("%+v\n", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
@@ -118,7 +118,7 @@ func (srv *Server) HandleSignin() gin.HandlerFunc {
 		}
 		sessionCookie, err := makeSessionCookie(ctx, srv.auth, signinForm.IdToken)
 		if err != nil {
-			srv.logger.Println(err)
+			srv.logger.Printf("%+v\n", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}

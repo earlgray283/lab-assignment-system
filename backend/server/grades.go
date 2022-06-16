@@ -54,7 +54,7 @@ func (srv *Server) HandleGenerateToken() gin.HandlerFunc {
 			}
 			return nil
 		}); err != nil {
-			srv.logger.Println(err)
+			srv.logger.Printf("%+v\n", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
@@ -72,13 +72,13 @@ func (srv *Server) HandlePostGrade() gin.HandlerFunc {
 		}
 		var grade models.Grade
 		if err := c.BindJSON(&grade); err != nil {
-			srv.logger.Println(err)
+			srv.logger.Printf("%+v\n", err)
 			return
 		}
 
 		var registerToken repository.RegisterToken
 		if err := srv.dc.Get(ctx, repository.NewRegisterTokenKey(token), &registerToken); err != nil {
-			srv.logger.Println(err)
+			srv.logger.Printf("%+v\n", err)
 			if err == datastore.ErrNoSuchEntity {
 				AbortWithErrorJSON(c, NewError(http.StatusBadRequest, "the register-token was not found"))
 			} else {
@@ -94,7 +94,7 @@ func (srv *Server) HandlePostGrade() gin.HandlerFunc {
 		var user repository.User
 		userKey := repository.NewUserKey(registerToken.UID)
 		if err := srv.dc.Get(c, userKey, &user); err != nil {
-			srv.logger.Println(err)
+			srv.logger.Printf("%+v\n", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 		}
 		if user.Gpa == nil {
@@ -104,7 +104,7 @@ func (srv *Server) HandlePostGrade() gin.HandlerFunc {
 			})
 			user.Gpa = &gpa
 			if _, err := srv.dc.Put(c, userKey, &user); err != nil {
-				srv.logger.Println(err)
+				srv.logger.Printf("%+v\n", err)
 				c.AbortWithStatus(http.StatusInternalServerError)
 			}
 		} else {
