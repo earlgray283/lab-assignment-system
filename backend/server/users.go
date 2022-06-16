@@ -11,7 +11,7 @@ import (
 func (srv *Server) UserRouter() {
 	gradesRouter := srv.r.Group("/users")
 	{
-		gradesRouter.GET("/:uid", srv.HandleGetUser())
+		gradesRouter.GET("", srv.HandleGetUser())
 	}
 }
 
@@ -24,15 +24,8 @@ func (srv *Server) HandleGetUser() gin.HandlerFunc {
 			AbortWithErrorJSON(c, NewError(http.StatusUnauthorized, "not logged in"))
 			return
 		}
-		uid := c.Param("uid")
-		if authToken.UID != uid {
-			// TODO: admin 権限で見れるようにする
-			srv.logger.Println(err)
-			c.AbortWithStatus(http.StatusForbidden)
-			return
-		}
 		var user repository.User
-		if err := srv.dc.Get(ctx, repository.NewUserKey(uid), &user); err != nil {
+		if err := srv.dc.Get(ctx, repository.NewUserKey(authToken.UID), &user); err != nil {
 			srv.logger.Println(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
