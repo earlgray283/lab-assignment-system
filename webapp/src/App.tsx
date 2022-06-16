@@ -13,6 +13,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Appbar } from './components/Appbar';
 import RegisterGrades from './pages/RegisterGrades';
 import { fetchUser } from './apis/user';
+import { signin } from './apis/auth';
+import { sleep } from './lib/util';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -39,9 +41,22 @@ function App(): JSX.Element {
 
   useEffect(() => {
     auth.onAuthStateChanged(async (firebaseUser) => {
+      setCurrentUser(undefined);
       if (firebaseUser) {
-        const apiUser = await fetchUser(firebaseUser.uid);
-        setCurrentUser({ firebaseUser, apiUser });
+        for (let i = 0; i < 5; i++) {
+          try {
+            const apiUser = await fetchUser();
+            setCurrentUser({ firebaseUser, apiUser });
+            break;
+          } catch (e) {
+            try {
+              const idToken = await firebaseUser.getIdToken();
+              await signin(idToken);
+            } catch (e) {
+              await sleep(100);
+            }
+          }
+        }
       } else {
         setCurrentUser(null);
       }
