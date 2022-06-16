@@ -36,6 +36,12 @@ function RegisterGrades(): JSX.Element {
           1. TamperMonkey のインストールをする
         </Typography>
         <Typography variant='body2'>
+          TamperMonkey
+          はユーザースクリプトをブラウザ上で動作させる拡張機能です。
+          <br />
+          今回では、学情の成績情報を lab-assignment-system
+          サーバーに送信するユーザースクリプトを動作するために必要となります。
+          <br />
           ご利用のブラウザをクリックしてインストール作業を行なって下さい。
           <br />
           <a
