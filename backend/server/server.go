@@ -39,7 +39,7 @@ func New(dc *datastore.Client, auth *auth.Client, frontendUrl, gakujoUrl string)
 	r.Use(cors.New(*corsConfig))
 	logger := log.Default()
 	gin.DefaultWriter = logger.Writer()
-	gpaWorker := NewGpaWorker(dc, time.Hour)
+	gpaWorker := NewGpaWorker(dc, 5*time.Minute)
 	srv := &Server{r, logger, dc, auth, frontendUrl, gpaWorker}
 
 	srv.GradesRouter()
