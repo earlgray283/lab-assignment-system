@@ -95,7 +95,7 @@ export function SigninForm(props: {
         }}
       >
         <TypographyLink to='/auth/signup' color='#1976d2'>
-          新規登録をする
+          初めて利用する方はこちら
         </TypographyLink>
       </Box>
 
