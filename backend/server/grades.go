@@ -67,7 +67,7 @@ func (srv *Server) HandlePostGrade() gin.HandlerFunc {
 		ctx := c.Request.Context()
 		token := c.Request.Header.Get("register-token")
 		if token == "" {
-			AbortWithErrorJSON(c, NewError(http.StatusBadRequest, "You must generate register-token"))
+			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "You must generate register-token"))
 			return
 		}
 		var grade models.Grade
@@ -80,14 +80,14 @@ func (srv *Server) HandlePostGrade() gin.HandlerFunc {
 		if err := srv.dc.Get(ctx, repository.NewRegisterTokenKey(token), &registerToken); err != nil {
 			srv.logger.Printf("%+v\n", err)
 			if err == datastore.ErrNoSuchEntity {
-				AbortWithErrorJSON(c, NewError(http.StatusBadRequest, "the register-token was not found"))
+				lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "the register-token was not found"))
 			} else {
 				c.AbortWithStatus(http.StatusInternalServerError)
 			}
 			return
 		}
 		if time.Now().After(registerToken.Expires) {
-			AbortWithErrorJSON(c, NewError(http.StatusBadRequest, "invalid register-token"))
+			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "invalid register-token"))
 			return
 		}
 
@@ -110,7 +110,7 @@ func (srv *Server) HandlePostGrade() gin.HandlerFunc {
 		} else {
 			// 既に成績が存在する場合は処理を行わない
 			// 上書きしたい場合は delete リクエストを送ってもらう
-			AbortWithErrorJSON(c, NewError(http.StatusConflict, "Grade has already existed. Please delete it and try again."))
+			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusConflict, "Grade has already existed. Please delete it and try again."))
 		}
 	}
 }

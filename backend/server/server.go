@@ -1,6 +1,7 @@
 package server
 
 import (
+	"lab-assignment-system-backend/server/worker"
 	"log"
 	"time"
 
@@ -16,7 +17,7 @@ type Server struct {
 	dc          *datastore.Client
 	auth        *auth.Client
 	frontendUrl string
-	gpaWorker   *GpaWorker
+	gpaWorker   *worker.GpaWorker
 }
 
 const ExcludeLowerPoint = 60
@@ -39,7 +40,7 @@ func New(dc *datastore.Client, auth *auth.Client, frontendUrl, gakujoUrl string)
 	r.Use(cors.New(*corsConfig))
 	logger := log.Default()
 	gin.DefaultWriter = logger.Writer()
-	gpaWorker := NewGpaWorker(dc, 5*time.Minute)
+	gpaWorker := worker.NewGpaWorker(dc, 5*time.Minute)
 	srv := &Server{r, logger, dc, auth, frontendUrl, gpaWorker}
 
 	srv.GradesRouter()

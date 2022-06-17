@@ -1,6 +1,7 @@
 package server
 
 import (
+	"lab-assignment-system-backend/lib"
 	"lab-assignment-system-backend/repository"
 	"lab-assignment-system-backend/server/models"
 	"net/http"
@@ -21,7 +22,7 @@ func (srv *Server) HandleGetUser() gin.HandlerFunc {
 		authToken, err := srv.GetAuthToken(c)
 		if err != nil {
 			srv.logger.Printf("%+v\n", err)
-			AbortWithErrorJSON(c, NewError(http.StatusUnauthorized, "not logged in"))
+			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusUnauthorized, "not logged in"))
 			return
 		}
 		var user repository.User

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"lab-assignment-system-backend/lib"
 	"lab-assignment-system-backend/repository"
 	"log"
 	"net/http"
@@ -46,13 +47,13 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 			return
 		}
 		if !validateEmail(signupForm.Email) || len(signupForm.Password) < 8 {
-			AbortWithErrorJSON(c, NewError(http.StatusBadRequest, "invalid email or password"))
+			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "invalid email or password"))
 			return
 		}
 		token, err := srv.auth.VerifyIDToken(ctx, signupForm.IdToken)
 		if err != nil {
 			srv.logger.Printf("%+v\n", err)
-			AbortWithErrorJSON(c, NewError(http.StatusUnauthorized, "not logged in"))
+			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusUnauthorized, "not logged in"))
 			return
 		}
 		userdata, err := srv.auth.GetUser(ctx, token.UID)
@@ -130,7 +131,7 @@ func (srv *Server) HandleSignout() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sessionCookie, err := c.Request.Cookie("session")
 		if err != nil {
-			AbortWithErrorJSON(c, NewError(http.StatusBadRequest, "no session cookie"))
+			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "no session cookie"))
 			return
 		}
 		sessionCookie.Value = ""

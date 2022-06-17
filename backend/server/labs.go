@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"lab-assignment-system-backend/lib"
 	"lab-assignment-system-backend/repository"
 	"lab-assignment-system-backend/server/models"
 	"net/http"
@@ -34,7 +35,7 @@ func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
 		// TODO: definition type を使うなりする
 		for _, optField := range optFields {
 			if optField != "grade" {
-				AbortWithErrorJSON(c, NewError(http.StatusBadRequest, fmt.Sprintln("optField", optField, "is not supported")))
+				lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, fmt.Sprintln("optField", optField, "is not supported")))
 				return
 			}
 		}
@@ -54,7 +55,7 @@ func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
 				return
 			}
 			if !ok {
-				AbortWithErrorJSON(c, NewError(http.StatusNotFound, "no such lab"))
+				lib.AbortWithErrorJSON(c, lib.NewError(http.StatusNotFound, "no such lab"))
 				return
 			}
 			repoLabs = repoLabs2
