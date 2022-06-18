@@ -60,7 +60,7 @@ func (srv *Server) HandlePutUser() gin.HandlerFunc {
 		labs[3].FirstChoice++
 		labs[4].SecondChoice++
 		labs[5].ThirdChice++
-		repoNewUser, userKey := repository.NewUser(authToken.UID, user.Email, user.StudentNumber, user.Name, newUser.Lab1, newUser.Lab2, newUser.Lab3, user.CreatedAt)
+		repoNewUser, userKey := repository.NewUser(authToken.UID, user.Email, user.StudentNumber, user.Name, newUser.Lab1, newUser.Lab2, newUser.Lab3, user.Gpa, user.CreatedAt)
 		repoNewUser.UpdatedAt = lib.PointerOfValue(time.Now())
 		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 			mutations := make([]*datastore.Mutation, 0, 7)

@@ -70,6 +70,7 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 			signupForm.Lab1,
 			signupForm.Lab2,
 			signupForm.Lab3,
+			nil,
 			time.Now(),
 		)
 		labIds := []string{signupForm.Lab1, signupForm.Lab2, signupForm.Lab3}
