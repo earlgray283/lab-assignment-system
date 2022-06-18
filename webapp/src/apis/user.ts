@@ -38,3 +38,20 @@ export async function updateUser(user: ApiUser): Promise<ApiUser> {
     throw new Error(e as string);
   }
 }
+
+export async function deleteUser(uid: string): Promise<void> {
+  try {
+    await http.delete(`/users/${uid}`);
+  } catch (e: unknown) {
+    if (e instanceof AxiosError) {
+      if (e.response) {
+        console.log(e.response.data);
+        const errorJson = e.response.data as ApiError;
+        throw new Error(errorJson.message);
+      } else {
+        throw new Error(e.message);
+      }
+    }
+    throw new Error(e as string);
+  }
+}

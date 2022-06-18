@@ -1,6 +1,6 @@
-import { Box, Button, Typography } from '@mui/material';
-import React, { useContext, useState } from 'react';
-import { updateUser } from '../apis/user';
+import { Box, Button, TextField, Typography } from '@mui/material';
+import React, { useContext, useEffect, useState } from 'react';
+import { deleteUser, updateUser } from '../apis/user';
 import { User, UserContext } from '../App';
 import LabSurvey from '../components/forms/LabSurvey';
 import { DefaultLayout } from '../components/layout';
@@ -24,6 +24,7 @@ function useUser(): User {
 
 function Profile(): JSX.Element {
   const user = useUser();
+  const [uid, setUid] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined
   );
@@ -32,6 +33,15 @@ function Profile(): JSX.Element {
     lab2: user.apiUser.lab2,
     lab3: user.apiUser.lab3,
   });
+  const [isAdmin, setAdmin] = useState(false);
+  useEffect(() => {
+    (async () => {
+      const res = await user.firebaseUser.getIdTokenResult();
+      if (res.claims.admin !== undefined) {
+        setAdmin(!!res.claims.admin);
+      }
+    })();
+  }, [user]);
 
   return (
     <DefaultLayout>
@@ -73,6 +83,23 @@ function Profile(): JSX.Element {
           保存する
         </Button>
       </Box>
+      {isAdmin && (
+        <Box>
+          <Typography variant='h6' marginBottom='10px'>
+            管理者画面
+          </Typography>
+          <Box>
+            ユーザーの削除:{' '}
+            <TextField value={uid} onChange={(e) => setUid(e.target.value)} />
+            <Button
+              valiant='primary'
+              onClick={async () => await deleteUser(uid)}
+            >
+              削除する
+            </Button>
+          </Box>
+        </Box>
+      )}
     </DefaultLayout>
   );
 }
