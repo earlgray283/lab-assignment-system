@@ -25,7 +25,7 @@ func NewUserKey(uid string) *datastore.Key {
 	return datastore.NameKey(KindUser, uid, nil)
 }
 
-func NewUser(uid, email, studentNumber, name, lab1, lab2, lab3 string) (*User, *datastore.Key) {
+func NewUser(uid, email, studentNumber, name, lab1, lab2, lab3 string, createdAt time.Time) (*User, *datastore.Key) {
 	return &User{
 		UID:           uid,
 		Email:         email,
@@ -34,6 +34,5 @@ func NewUser(uid, email, studentNumber, name, lab1, lab2, lab3 string) (*User, *
 		Lab1:          lab1,
 		Lab2:          lab2,
 		Lab3:          lab3,
-		CreatedAt:     time.Now(),
 	}, NewUserKey(uid)
 }

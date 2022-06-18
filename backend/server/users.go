@@ -5,18 +5,78 @@ import (
 	"lab-assignment-system-backend/repository"
 	"lab-assignment-system-backend/server/models"
 	"net/http"
+	"time"
 
 	"cloud.google.com/go/datastore"
 	"firebase.google.com/go/auth"
 	"github.com/gin-gonic/gin"
 )
 
+// TODO: クソ uri をなんとかする
 func (srv *Server) UserRouter() {
 	gradesRouter := srv.r.Group("/users")
 	gradesRouter.Use(srv.Authentication())
 	{
 		gradesRouter.GET("", srv.HandleGetUser())
 		gradesRouter.DELETE("/:uid", srv.HandleDeleteUser())
+		gradesRouter.PUT("", srv.HandlePutUser())
+	}
+}
+
+func (srv *Server) HandlePutUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+		authToken := c.MustGet("authToken").(*auth.Token)
+		var newUser models.User
+		if err := c.BindJSON(&newUser); err != nil {
+			srv.logger.Println(err)
+			return
+		}
+		var user repository.User
+		if err := srv.dc.Get(ctx, repository.NewUserKey(authToken.UID), &user); err != nil {
+			srv.logger.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		labs := make([]*repository.Lab, 6)
+		labKeys := make([]*datastore.Key, 6)
+		for i, labId := range []string{user.Lab1, user.Lab2, user.Lab3, newUser.Lab1, newUser.Lab2, newUser.Lab3} {
+			labKeys[i] = repository.NewLabKey(labId)
+		}
+		if err := srv.dc.GetMulti(ctx, labKeys, labs); err != nil {
+			srv.logger.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		if labs[0].FirstChoice > 0 {
+			labs[0].FirstChoice--
+		}
+		if labs[1].SecondChoice > 0 {
+			labs[1].SecondChoice--
+		}
+		if labs[2].ThirdChice > 0 {
+			labs[2].ThirdChice--
+		}
+		labs[3].FirstChoice++
+		labs[4].SecondChoice++
+		labs[5].ThirdChice++
+		repoNewUser, userKey := repository.NewUser(authToken.UID, user.Email, user.StudentNumber, user.Name, newUser.Lab1, newUser.Lab2, newUser.Lab3, user.CreatedAt)
+		repoNewUser.UpdatedAt = lib.PointerOfValue(time.Now())
+		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
+			mutations := make([]*datastore.Mutation, 0, 7)
+			mutations = append(mutations, datastore.NewUpdate(userKey, repoNewUser))
+			for i := range labs {
+				mutations = append(mutations, datastore.NewUpdate(labKeys[i], labs[i]))
+			}
+			if _, err := tx.Mutate(mutations...); err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
+			srv.logger.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -40,10 +100,14 @@ func (srv *Server) HandleDeleteUser() gin.HandlerFunc {
 			repository.NewLabKey(user.Lab2),
 			repository.NewLabKey(user.Lab3),
 		}
-		labs := make([]*repository.Lab, 3)
-		if err := srv.dc.GetMulti(ctx, keys, labs); err != nil {
+		labs, ok, err := repository.FetchAllLabs(ctx, srv.dc, []string{user.Lab1, user.Lab2, user.Lab3})
+		if err != nil {
 			srv.logger.Println(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		if !ok {
+			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 		if labs[0].FirstChoice > 0 {
