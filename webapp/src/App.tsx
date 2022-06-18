@@ -21,7 +21,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const Signin = lazy(() => import('./pages/Signin'));
 const Signup = lazy(() => import('./pages/Signup'));
 
-interface User {
+export interface User {
   firebaseUser: FirebaseUser;
   apiUser: ApiUser;
 }

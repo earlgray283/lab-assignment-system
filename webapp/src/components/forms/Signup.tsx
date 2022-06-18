@@ -1,9 +1,6 @@
 import { Alert, Button, Stack, TextField, Typography } from '@mui/material';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { fetchLabs } from '../../apis/labs';
-import { LabList } from '../../apis/models/lab';
-import { sleep } from '../../lib/util';
 import LabSurvey from './LabSurvey';
 
 export interface SignupFormInput {
@@ -17,24 +14,12 @@ export interface SignupFormInput {
   lab3: string;
 }
 
-let labList: LabList | undefined;
-
-function useLabList(): LabList {
-  if (labList === undefined) {
-    throw fetchLabs()
-      .then((data) => (labList = data))
-      .catch(() => sleep(2000));
-  }
-  return labList;
-}
-
 export function SignupForm(props: {
   onSubmit: (data: SignupFormInput) => void;
   errorMessage?: string;
   onError?: (e: unknown) => void;
 }): JSX.Element {
-  const { control, handleSubmit, watch } = useForm<SignupFormInput>();
-  const labList = useLabList();
+  const { control, handleSubmit, watch, setValue } = useForm<SignupFormInput>();
 
   return (
     <Stack
@@ -202,7 +187,15 @@ export function SignupForm(props: {
         />
       </Stack>
 
-      <LabSurvey labList={labList} control={control} watch={watch} />
+      <Typography variant='h6'>研究室アンケート</Typography>
+
+      <LabSurvey
+        onChange={(lab1, lab2, lab3) => {
+          setValue('lab1', lab1);
+          setValue('lab2', lab2);
+          setValue('lab3', lab3);
+        }}
+      />
 
       <Button color='primary' type='submit' variant='contained'>
         Sign up

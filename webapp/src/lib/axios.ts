@@ -37,6 +37,19 @@ export async function postJson<
   return resp;
 }
 
+export async function putJson<
+  T = unknown,
+  R = AxiosResponse<T, unknown>,
+  D = unknown
+>(uri: string, data: D): Promise<R> {
+  const resp = http.put<T, R, D>(uri, data, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  return resp;
+}
+
 export function isErrorStatus(code: number): boolean {
   return code >= 400;
 }
