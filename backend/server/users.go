@@ -18,7 +18,26 @@ func (srv *Server) UserRouter() {
 	gradesRouter.Use(srv.Authentication())
 	{
 		gradesRouter.GET("", srv.HandleGetUser())
-		gradesRouter.DELETE("/:uid", srv.HandleDeleteUser())
+		gradesRouter.DELETE("/:uid", srv.HandleDeleteUser()).Use(func(c *gin.Context) {
+			authToken := c.MustGet("authToken").(*auth.Token)
+			user, err := srv.auth.GetUser(c.Request.Context(), authToken.UID)
+			if err != nil {
+				c.AbortWithStatus(http.StatusUnauthorized)
+				return
+			}
+			claims := user.CustomClaims
+			if claimValue, ok := claims["admin"]; ok {
+				isAdmin := claimValue.(bool)
+				if !isAdmin {
+					c.AbortWithStatus(http.StatusForbidden)
+					return
+				}
+			} else {
+				c.AbortWithStatus(http.StatusForbidden)
+				return
+			}
+			c.Next()
+		})
 		gradesRouter.PUT("", srv.HandlePutUser())
 	}
 }
