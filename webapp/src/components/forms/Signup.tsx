@@ -1,16 +1,10 @@
-import {
-  Alert,
-  Button,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Alert, Button, Stack, TextField, Typography } from '@mui/material';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { fetchLabs } from '../../apis/labs';
 import { LabList } from '../../apis/models/lab';
 import { sleep } from '../../lib/util';
+import LabSurvey from './LabSurvey';
 
 export interface SignupFormInput {
   email: string;
@@ -208,87 +202,7 @@ export function SignupForm(props: {
         />
       </Stack>
 
-      <Stack spacing={2} width='90%' display='flex' flexDirection='column'>
-        <Typography variant='h6'>研究室配属アンケート</Typography>
-        <Controller
-          name='lab1'
-          defaultValue=''
-          control={control}
-          rules={{
-            validate: (input) =>
-              input == watch().lab2 || input == watch().lab3
-                ? '研究室が重複しています'
-                : true,
-          }}
-          render={({ field }) => (
-            <TextField
-              defaultValue=''
-              select
-              label='第1希望の研究室'
-              {...field}
-            >
-              <MenuItem value={''}>未選択</MenuItem>
-              {labList.labs.map((lab) => (
-                <MenuItem value={lab.id} key={lab.id}>
-                  {lab.name}
-                </MenuItem>
-              ))}
-            </TextField>
-          )}
-        />
-        <Controller
-          name='lab2'
-          control={control}
-          defaultValue=''
-          rules={{
-            validate: (input) =>
-              input == watch().lab1 || input == watch().lab3
-                ? '研究室が重複しています'
-                : true,
-          }}
-          render={({ field }) => (
-            <TextField
-              defaultValue=''
-              select
-              label='第2希望の研究室'
-              {...field}
-            >
-              <MenuItem value={''}>未選択</MenuItem>
-              {labList.labs.map((lab) => (
-                <MenuItem value={lab.id} key={lab.id}>
-                  {lab.name}
-                </MenuItem>
-              ))}
-            </TextField>
-          )}
-        />
-        <Controller
-          name='lab3'
-          control={control}
-          defaultValue=''
-          rules={{
-            validate: (input) =>
-              input == watch().lab1 || input == watch().lab2
-                ? '研究室が重複しています'
-                : true,
-          }}
-          render={({ field }) => (
-            <TextField
-              defaultValue=''
-              select
-              label='第3希望の研究室'
-              {...field}
-            >
-              <MenuItem value={''}>未選択</MenuItem>
-              {labList.labs.map((lab) => (
-                <MenuItem value={lab.id} key={lab.id}>
-                  {lab.name}
-                </MenuItem>
-              ))}
-            </TextField>
-          )}
-        />
-      </Stack>
+      <LabSurvey labList={labList} control={control} watch={watch} />
 
       <Button color='primary' type='submit' variant='contained'>
         Sign up
