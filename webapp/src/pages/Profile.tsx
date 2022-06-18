@@ -92,7 +92,7 @@ function Profile(): JSX.Element {
             ユーザーの削除:{' '}
             <TextField value={uid} onChange={(e) => setUid(e.target.value)} />
             <Button
-              valiant='primary'
+              variant='contained'
               onClick={async () => await deleteUser(uid)}
             >
               削除する
