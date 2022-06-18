@@ -37,6 +37,23 @@ func TestPostGrades(t *testing.T) {
 	}
 }
 
+func TestDeleteUser(t *testing.T) {
+	go launchServer()
+	uid := "<secret>"
+	req, err := http.NewRequest(http.MethodDelete, "http://localhost:8080/users/"+uid, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Register-Token", registerToken)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatal("not 200 OK")
+	}
+}
+
 func init() {
 	_ = godotenv.Load("../.env")
 }
