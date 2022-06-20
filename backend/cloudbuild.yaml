@@ -2,7 +2,7 @@ steps:
   - name: "gcr.io/kaniko-project/executor:latest"
     args:
       - --destination=$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
-      - --cache=true
+      - --cache=false
       - --dockerfile=backend/Dockerfile
       - --context=backend
     id: Build
