@@ -1,6 +1,6 @@
 # lab-assignment-system
 
-lab-assignment-system is a system which assigns students to laboratories in Shizuoka University.
+lab-assignment-system is a web application which assigns students to laboratories in Shizuoka University.
 
 ## Build
 
