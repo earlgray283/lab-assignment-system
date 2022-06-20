@@ -18,6 +18,7 @@ type Server struct {
 	auth        *auth.Client
 	frontendUrl string
 	gpaWorker   *worker.GpaWorker
+	labsChecker *worker.LabsChecker
 }
 
 const ExcludeLowerPoint = 60
@@ -41,7 +42,8 @@ func New(dc *datastore.Client, auth *auth.Client, frontendUrl, gakujoUrl string)
 	logger := log.Default()
 	gin.DefaultWriter = logger.Writer()
 	gpaWorker := worker.NewGpaWorker(dc, 5*time.Minute)
-	srv := &Server{r, logger, dc, auth, frontendUrl, gpaWorker}
+	labsWorker := worker.NewLabsChecker(dc, time.Hour)
+	srv := &Server{r, logger, dc, auth, frontendUrl, gpaWorker, labsWorker}
 
 	srv.GradesRouter()
 	srv.AuthRouter()
@@ -55,6 +57,9 @@ func (srv *Server) Run(addr ...string) error {
 	errc := make(chan error)
 	go func() {
 		srv.gpaWorker.Run()
+	}()
+	go func() {
+		srv.labsChecker.Run()
 	}()
 	go func() {
 		err := srv.r.Run(addr...)
