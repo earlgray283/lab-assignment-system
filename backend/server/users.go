@@ -67,18 +67,18 @@ func (srv *Server) HandlePutUser() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-		if labs[0].FirstChoice > 0 {
+		if labs[0].ID != labs[3].ID {
 			labs[0].FirstChoice--
+			labs[3].FirstChoice++
 		}
-		if labs[1].SecondChoice > 0 {
+		if labs[1].ID != labs[4].ID {
 			labs[1].SecondChoice--
+			labs[4].SecondChoice++
 		}
-		if labs[2].ThirdChice > 0 {
+		if labs[2].ID != labs[5].ID {
 			labs[2].ThirdChice--
+			labs[5].ThirdChice++
 		}
-		labs[3].FirstChoice++
-		labs[4].SecondChoice++
-		labs[5].ThirdChice++
 		repoNewUser, userKey := repository.NewUser(authToken.UID, user.Email, user.StudentNumber, user.Name, newUser.Lab1, newUser.Lab2, newUser.Lab3, user.Gpa, user.CreatedAt)
 		repoNewUser.UpdatedAt = lib.PointerOfValue(time.Now())
 		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
