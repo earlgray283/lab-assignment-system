@@ -95,6 +95,7 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 			srv.logger.Printf("%+v\n", err)
 			return
 		}
+
 		ok, err := repository.VerifyToken(ctx, srv.dc, signupForm.Token)
 		if err != nil {
 			srv.logger.Println(err)
@@ -105,6 +106,7 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "You must confirm email address"))
 			return
 		}
+
 		if !validateEmail(signupForm.Email) || len(signupForm.Password) < 8 {
 			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "invalid email or password"))
 			return
@@ -115,15 +117,9 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusUnauthorized, "not logged in"))
 			return
 		}
-		userdata, err := srv.auth.GetUser(ctx, token.UID)
-		if err != nil {
-			srv.logger.Printf("%+v\n", err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
 		user, userKey := repository.NewUser(
-			userdata.UID,
-			userdata.Email,
+			token.UID,
+			signupForm.Email,
 			signupForm.StudentNumber,
 			signupForm.Name,
 			signupForm.Lab1,
@@ -132,16 +128,20 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 			nil,
 			time.Now(),
 		)
-		labIds := []string{signupForm.Lab1, signupForm.Lab2, signupForm.Lab3}
+		labs, ok, err := repository.FetchAllLabs(ctx, srv.dc, []string{signupForm.Lab1, signupForm.Lab2, signupForm.Lab3})
+		if err != nil {
+			srv.logger.Printf("%+v\n", err)
+			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusUnauthorized, "not logged in"))
+			return
+		}
+		if !ok {
+			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "no such lab"))
+			return
+		}
 		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 			mutations := make([]*datastore.Mutation, 0, 4)
 			mutations = append(mutations, datastore.NewInsert(userKey, user))
-			for i, labId := range labIds {
-				var lab repository.Lab
-				key := repository.NewLabKey(labId)
-				if err := tx.Get(key, &lab); err != nil {
-					return err
-				}
+			for i, lab := range labs {
 				if i == 0 {
 					lab.FirstChoice++
 				} else if i == 1 {
@@ -149,7 +149,7 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 				} else {
 					lab.ThirdChice++
 				}
-				mutations = append(mutations, datastore.NewUpdate(key, &lab))
+				mutations = append(mutations, datastore.NewUpdate(repository.NewLabKey(lab.ID), lab))
 			}
 			if _, err := tx.Mutate(mutations...); err != nil {
 				return err

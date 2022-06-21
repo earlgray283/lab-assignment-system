@@ -18,27 +18,8 @@ func (srv *Server) UserRouter() {
 	r.Use(srv.Authentication())
 	{
 		r.GET("", srv.HandleGetUser())
-		r.DELETE("/:uid", srv.HandleDeleteUser()).Use(func(c *gin.Context) {
-			authToken := c.MustGet("authToken").(*auth.Token)
-			user, err := srv.auth.GetUser(c.Request.Context(), authToken.UID)
-			if err != nil {
-				c.AbortWithStatus(http.StatusUnauthorized)
-				return
-			}
-			claims := user.CustomClaims
-			if claimValue, ok := claims["admin"]; ok {
-				isAdmin := claimValue.(bool)
-				if !isAdmin {
-					c.AbortWithStatus(http.StatusForbidden)
-					return
-				}
-			} else {
-				c.AbortWithStatus(http.StatusForbidden)
-				return
-			}
-			c.Next()
-		})
 		r.PUT("", srv.HandlePutUser())
+		r.DELETE("/:uid", srv.HandleDeleteUser()).Use(srv.CheckAdmin())
 	}
 }
 
