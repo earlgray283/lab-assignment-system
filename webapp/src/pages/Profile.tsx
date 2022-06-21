@@ -1,4 +1,4 @@
-import { Box, Button, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, TextField, Typography } from '@mui/material';
 import React, { useContext, useEffect, useState } from 'react';
 import { deleteUser, updateUser } from '../apis/user';
 import { User, UserContext } from '../App';
@@ -47,6 +47,7 @@ function Profile(): JSX.Element {
     <DefaultLayout>
       <Typography variant='h4'>Profile</Typography>
       <Box>
+        {errorMessage && <Alert severity='error'>errorMessage</Alert>}
         <Typography variant='h6' marginBottom='10px'>
           研究室アンケートの変更
         </Typography>
