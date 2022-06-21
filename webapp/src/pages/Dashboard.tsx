@@ -24,12 +24,6 @@ function Dashboard(): JSX.Element {
   return (
     <FullLayout>
       <Stack spacing={2}>
-        {!user.firebaseUser.emailVerified && (
-          <Alert severity='error'>
-            {user.firebaseUser.email}{' '}
-            宛に確認リンクを送信しました。メールアドレスの確認をしてください
-          </Alert>
-        )}
         {user.apiUser.gpa === undefined && (
           <Alert severity='error'>
             成績情報が登録されていないようです。

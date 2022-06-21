@@ -1,5 +1,6 @@
 import { Alert, Button, Stack, TextField, Typography } from '@mui/material';
 import React from 'react';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import LabSurvey from './LabSurvey';
 
@@ -12,14 +13,20 @@ export interface SignupFormInput {
   lab1: string;
   lab2: string;
   lab3: string;
+  token: string;
 }
 
 export function SignupForm(props: {
   onSubmit: (data: SignupFormInput) => void;
   errorMessage?: string;
   onError?: (e: unknown) => void;
+  token: string;
 }): JSX.Element {
   const { control, handleSubmit, watch, setValue } = useForm<SignupFormInput>();
+
+  useEffect(() => {
+    setValue('token', props.token);
+  }, []);
 
   return (
     <Stack

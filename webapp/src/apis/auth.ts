@@ -50,3 +50,21 @@ export async function signout(): Promise<void> {
     throw new Error(e as string);
   }
 }
+
+export async function emailVerification(email: string): Promise<void> {
+  const data = new URLSearchParams();
+  data.set('email', email);
+  try {
+    await http.post('/auth/email-verification', data);
+  } catch (e: unknown) {
+    if (e instanceof AxiosError) {
+      if (e.response) {
+        const errorJson = e.response.data as ApiError;
+        throw new Error(errorJson.message);
+      } else {
+        throw new Error(e.message);
+      }
+    }
+    throw new Error(e as string);
+  }
+}

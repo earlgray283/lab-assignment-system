@@ -25,6 +25,7 @@ type SignupForm struct {
 	Lab1          string `json:"lab1,omitempty"`
 	Lab2          string `json:"lab2,omitempty"`
 	Lab3          string `json:"lab3,omitempty"`
+	Token         string `json:"token"`
 }
 
 type SigninForm struct {
@@ -92,6 +93,16 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 		var signupForm SignupForm
 		if err := c.BindJSON(&signupForm); err != nil {
 			srv.logger.Printf("%+v\n", err)
+			return
+		}
+		ok, err := repository.VerifyToken(ctx, srv.dc, signupForm.Token)
+		if err != nil {
+			srv.logger.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		if !ok {
+			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "You must confirm email address"))
 			return
 		}
 		if !validateEmail(signupForm.Email) || len(signupForm.Password) < 8 {

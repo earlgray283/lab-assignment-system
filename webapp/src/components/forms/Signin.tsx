@@ -79,9 +79,10 @@ export function SigninForm(props: {
         )}
       />
 
-      <TypographyLink to='/auth/signup' color='#1976d2'>
+      <TypographyLink to='/auth/email-verification' color='#1976d2'>
         初めて利用する方はこちら
       </TypographyLink>
+
       <TypographyLink to='/auth/password-reset' color='#1976d2'>
         パスワードを忘れた方はこちら
       </TypographyLink>

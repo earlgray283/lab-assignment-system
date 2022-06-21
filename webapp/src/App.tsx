@@ -16,6 +16,7 @@ import { fetchUser } from './apis/user';
 import { signin } from './apis/auth';
 import { sleep } from './lib/util';
 import PasswordReset from './pages/PasswordReset';
+import EmailVerification from './pages/EmailVerification';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -93,6 +94,10 @@ function App(): JSX.Element {
                       <Route
                         path='password-reset'
                         element={<PasswordReset />}
+                      />
+                      <Route
+                        path='email-verification'
+                        element={<EmailVerification />}
                       />
                     </Route>
 

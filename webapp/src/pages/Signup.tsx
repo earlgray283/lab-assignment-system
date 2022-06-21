@@ -1,11 +1,11 @@
+import { Alert } from '@mui/material';
 import {
   createUserWithEmailAndPassword,
   getAuth,
-  sendEmailVerification,
   updateProfile,
 } from 'firebase/auth';
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { signup } from '../apis/auth';
 
 import { SignupForm, SignupFormInput } from '../components/forms';
@@ -13,8 +13,15 @@ import { DefaultLayout } from '../components/layout';
 
 function Signup(): JSX.Element {
   const auth = getAuth();
+  const [token, setToken] = useState<string | null | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  const [params] = useSearchParams();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setToken(params.get('token'));
+  }, [params]);
+
   const onSubmit = async (data: SignupFormInput) => {
     try {
       const credential = await createUserWithEmailAndPassword(
@@ -37,7 +44,6 @@ function Signup(): JSX.Element {
           idToken: idToken,
           password: data.password,
         });
-        await sendEmailVerification(credential.user);
         navigate('/');
       } catch (e: unknown) {
         await credential.user.delete();
@@ -48,12 +54,23 @@ function Signup(): JSX.Element {
     }
   };
 
+  if (token === undefined) {
+    return <DefaultLayout />;
+  } else if (token === null) {
+    return (
+      <DefaultLayout>
+        <Alert severity='error'>メールアドレスの確認が完了していません。</Alert>
+      </DefaultLayout>
+    );
+  }
+
   return (
     <DefaultLayout>
       <SignupForm
         onSubmit={onSubmit}
         errorMessage={errorMessage}
         onError={(e) => setErrorMessage(`${e}`)}
+        token={token}
       />
     </DefaultLayout>
   );
