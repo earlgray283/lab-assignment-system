@@ -53,7 +53,7 @@ func main() {
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
 	}
-	srv := server.New(dc, auth, frontendUrl, gakujoUrl)
+	srv := server.New(dc, auth, []string{frontendUrl, gakujoUrl})
 	if err := srv.Run(fmt.Sprintf(":%v", port)); err != nil {
 		log.Fatal(err)
 	}

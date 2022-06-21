@@ -84,7 +84,7 @@ func launchServer() {
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
 	}
-	srv := New(dc, auth, frontendUrl, gakujoUrl)
+	srv := New(dc, auth, []string{frontendUrl, gakujoUrl})
 	if err := srv.Run(fmt.Sprintf(":%v", port)); err != nil {
 		log.Fatal(err)
 	}

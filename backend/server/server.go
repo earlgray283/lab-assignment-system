@@ -16,7 +16,6 @@ type Server struct {
 	logger      *log.Logger
 	dc          *datastore.Client
 	auth        *auth.Client
-	frontendUrl string
 	gpaWorker   *worker.GpaWorker
 	labsChecker *worker.LabsChecker
 }
@@ -31,19 +30,15 @@ func NewCorsConfig(allowOrigins []string) *cors.Config {
 	return &config
 }
 
-func New(dc *datastore.Client, auth *auth.Client, frontendUrl, gakujoUrl string) *Server {
+func New(dc *datastore.Client, auth *auth.Client, allowOrigins []string) *Server {
 	r := gin.Default()
-	corsConfig := NewCorsConfig([]string{
-		"http://localhost:3000",
-		gakujoUrl,
-		frontendUrl,
-	})
+	corsConfig := NewCorsConfig(append([]string{"http://localhost:3000"}, allowOrigins...))
 	r.Use(cors.New(*corsConfig))
 	logger := log.Default()
 	gin.DefaultWriter = logger.Writer()
 	gpaWorker := worker.NewGpaWorker(dc, 5*time.Minute)
 	labsWorker := worker.NewLabsChecker(dc, time.Hour)
-	srv := &Server{r, logger, dc, auth, frontendUrl, gpaWorker, labsWorker}
+	srv := &Server{r, logger, dc, auth, gpaWorker, labsWorker}
 
 	srv.GradesRouter()
 	srv.AuthRouter()
