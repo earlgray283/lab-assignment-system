@@ -13,9 +13,9 @@ import (
 )
 
 func (srv *Server) LabsRouter() {
-	gradesRouter := srv.r.Group("/labs")
+	r := srv.r.Group("/labs")
 	{
-		gradesRouter.GET("", srv.HandleGetAllLabs())
+		r.GET("", srv.HandleGetAllLabs())
 	}
 }
 

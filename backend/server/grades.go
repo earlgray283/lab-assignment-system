@@ -13,11 +13,11 @@ import (
 )
 
 func (srv *Server) GradesRouter() {
-	gradesRouter := srv.r.Group("/grades")
-	gradesRouter.Use(srv.Authentication())
+	r := srv.r.Group("/grades")
+	r.Use(srv.Authentication())
 	{
-		gradesRouter.GET("", srv.HandleGetAllGrades())
-		gradesRouter.POST("/generate-token", srv.HandleGenerateToken())
+		r.GET("", srv.HandleGetAllGrades())
+		r.POST("/generate-token", srv.HandleGenerateToken())
 	}
 
 	// authentication middleware を適用しない

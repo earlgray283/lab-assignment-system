@@ -14,11 +14,11 @@ import (
 
 // TODO: クソ uri をなんとかする
 func (srv *Server) UserRouter() {
-	gradesRouter := srv.r.Group("/users")
-	gradesRouter.Use(srv.Authentication())
+	r := srv.r.Group("/users")
+	r.Use(srv.Authentication())
 	{
-		gradesRouter.GET("", srv.HandleGetUser())
-		gradesRouter.DELETE("/:uid", srv.HandleDeleteUser()).Use(func(c *gin.Context) {
+		r.GET("", srv.HandleGetUser())
+		r.DELETE("/:uid", srv.HandleDeleteUser()).Use(func(c *gin.Context) {
 			authToken := c.MustGet("authToken").(*auth.Token)
 			user, err := srv.auth.GetUser(c.Request.Context(), authToken.UID)
 			if err != nil {
@@ -38,7 +38,7 @@ func (srv *Server) UserRouter() {
 			}
 			c.Next()
 		})
-		gradesRouter.PUT("", srv.HandlePutUser())
+		r.PUT("", srv.HandlePutUser())
 	}
 }
 

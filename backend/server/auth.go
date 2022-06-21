@@ -33,12 +33,12 @@ type SigninForm struct {
 }
 
 func (srv *Server) AuthRouter() {
-	gradesRouter := srv.r.Group("/auth")
+	r := srv.r.Group("/auth")
 	{
-		gradesRouter.POST("/signin", srv.HandleSignin())
-		gradesRouter.POST("/signup", srv.HandleSignup())
-		gradesRouter.POST("/email-verification", srv.HandleEmailVerification())
-		gradesRouter.POST("/signout", srv.HandleSignout()).Use(srv.Authentication())
+		r.POST("/signin", srv.HandleSignin())
+		r.POST("/signup", srv.HandleSignup())
+		r.POST("/email-verification", srv.HandleEmailVerification())
+		r.POST("/signout", srv.HandleSignout()).Use(srv.Authentication())
 	}
 }
 
