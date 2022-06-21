@@ -38,37 +38,10 @@ func (srv *Server) HandlePutUser() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-		labs := make([]*repository.Lab, 6)
-		labKeys := make([]*datastore.Key, 6)
-		for i, labId := range []string{user.Lab1, user.Lab2, user.Lab3, newUser.Lab1, newUser.Lab2, newUser.Lab3} {
-			labKeys[i] = repository.NewLabKey(labId)
-		}
-		if err := srv.dc.GetMulti(ctx, labKeys, labs); err != nil {
-			srv.logger.Println(err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
-		if labs[0].ID != labs[3].ID {
-			labs[0].FirstChoice--
-			labs[3].FirstChoice++
-		}
-		if labs[1].ID != labs[4].ID {
-			labs[1].SecondChoice--
-			labs[4].SecondChoice++
-		}
-		if labs[2].ID != labs[5].ID {
-			labs[2].ThirdChice--
-			labs[5].ThirdChice++
-		}
 		repoNewUser, userKey := repository.NewUser(authToken.UID, user.Email, user.StudentNumber, user.Name, newUser.Lab1, newUser.Lab2, newUser.Lab3, user.Gpa, user.CreatedAt)
 		repoNewUser.UpdatedAt = lib.PointerOfValue(time.Now())
 		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-			mutations := make([]*datastore.Mutation, 0, 7)
-			mutations = append(mutations, datastore.NewUpdate(userKey, repoNewUser))
-			for i := range labs {
-				mutations = append(mutations, datastore.NewUpdate(labKeys[i], labs[i]))
-			}
-			if _, err := tx.Mutate(mutations...); err != nil {
+			if _, err := tx.Put(userKey, repoNewUser); err != nil {
 				return err
 			}
 			return nil
@@ -95,37 +68,8 @@ func (srv *Server) HandleDeleteUser() gin.HandlerFunc {
 			}
 			return
 		}
-		keys := []*datastore.Key{
-			repository.NewLabKey(user.Lab1),
-			repository.NewLabKey(user.Lab2),
-			repository.NewLabKey(user.Lab3),
-		}
-		labs, ok, err := repository.FetchAllLabs(ctx, srv.dc, []string{user.Lab1, user.Lab2, user.Lab3})
-		if err != nil {
-			srv.logger.Println(err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
-		if !ok {
-			c.AbortWithStatus(http.StatusBadRequest)
-			return
-		}
-		if labs[0].FirstChoice > 0 {
-			labs[0].FirstChoice--
-		}
-		if labs[1].SecondChoice > 0 {
-			labs[1].SecondChoice--
-		}
-		if labs[2].ThirdChice > 0 {
-			labs[2].ThirdChice--
-		}
 		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-			mutations := make([]*datastore.Mutation, 0, 4)
-			for i := 0; i < 3; i++ {
-				mutations = append(mutations, datastore.NewUpdate(keys[i], labs[i]))
-			}
-			mutations = append(mutations, datastore.NewDelete(userKey))
-			if _, err := srv.dc.Mutate(ctx, mutations...); err != nil {
+			if err := tx.Delete(userKey); err != nil {
 				return err
 			}
 			if err := srv.auth.DeleteUser(ctx, uid); err != nil {

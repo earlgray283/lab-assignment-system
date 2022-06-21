@@ -63,13 +63,14 @@ func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
 
 		labs := make([]*models.Lab, len(repoLabs))
 		for i, repoLab := range repoLabs {
+			p := srv.labsChecker.GetLabCount(repoLab.ID)
 			labs[i] = &models.Lab{
 				ID:           repoLab.ID,
 				Name:         repoLab.Name,
 				Capacity:     repoLab.Capacity,
-				FirstChoice:  repoLab.FirstChoice,
-				SecondChoice: repoLab.SecondChoice,
-				ThirdChoice:  repoLab.ThirdChice,
+				FirstChoice:  p.First,
+				SecondChoice: p.Second,
+				ThirdChoice:  p.Third,
 			}
 			for _, optField := range optFields {
 				switch optField {

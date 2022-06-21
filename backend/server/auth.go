@@ -128,30 +128,8 @@ func (srv *Server) HandleSignup() gin.HandlerFunc {
 			nil,
 			time.Now(),
 		)
-		labs, ok, err := repository.FetchAllLabs(ctx, srv.dc, []string{signupForm.Lab1, signupForm.Lab2, signupForm.Lab3})
-		if err != nil {
-			srv.logger.Printf("%+v\n", err)
-			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusUnauthorized, "not logged in"))
-			return
-		}
-		if !ok {
-			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "no such lab"))
-			return
-		}
 		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-			mutations := make([]*datastore.Mutation, 0, 4)
-			mutations = append(mutations, datastore.NewInsert(userKey, user))
-			for i, lab := range labs {
-				if i == 0 {
-					lab.FirstChoice++
-				} else if i == 1 {
-					lab.SecondChoice++
-				} else {
-					lab.ThirdChice++
-				}
-				mutations = append(mutations, datastore.NewUpdate(repository.NewLabKey(lab.ID), lab))
-			}
-			if _, err := tx.Mutate(mutations...); err != nil {
+			if _, err := tx.Put(userKey, user); err != nil {
 				return err
 			}
 			return nil

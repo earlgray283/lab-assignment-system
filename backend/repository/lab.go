@@ -11,9 +11,6 @@ type Lab struct {
 	ID           string
 	Name         string
 	Capacity     int
-	FirstChoice  int
-	SecondChoice int
-	ThirdChice   int
 	CreatedAt    time.Time
 }
 

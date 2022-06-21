@@ -3,17 +3,36 @@ package worker
 import (
 	"context"
 	"fmt"
+	"lab-assignment-system-backend/lib"
 	"lab-assignment-system-backend/repository"
 	"log"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/datastore"
 	"github.com/robfig/cron"
 )
 
+type LabCountMap struct {
+	mp map[string]*Priority
+	sync.Mutex
+}
+
+func (l *LabCountMap) GetOrInsert(labId string, alt *Priority) *Priority {
+	if l.mp[labId] == nil {
+		l.mp[labId] = alt
+	}
+	return l.mp[labId]
+}
+
+type Priority struct {
+	First, Second, Third int
+}
+
 type LabsChecker struct {
-	c        *datastore.Client
-	interval time.Duration
+	c           *datastore.Client
+	labCountMap *LabCountMap
+	interval    time.Duration
 }
 
 func NewLabsChecker(c *datastore.Client, interval time.Duration) *LabsChecker {
@@ -30,6 +49,26 @@ func (l *LabsChecker) Run() {
 	c.Run()
 }
 
+func (l *LabsChecker) GetLabCount(labId string) *Priority {
+	l.labCountMap.Lock()
+	defer l.labCountMap.Unlock()
+	return l.labCountMap.mp[labId]
+}
+
+func (l *LabsChecker) GetLabCountMap() map[string]*Priority {
+	l.labCountMap.Lock()
+	defer l.labCountMap.Unlock()
+	mp := map[string]*Priority{}
+	for k, v := range l.labCountMap.mp {
+		mp[k] = &Priority{
+			First:  v.First,
+			Second: v.Second,
+			Third:  v.Third,
+		}
+	}
+	return mp
+}
+
 func (l *LabsChecker) runnerFunc(c *cron.Cron) func() {
 	return func() {
 		ctx := context.Background()
@@ -40,43 +79,16 @@ func (l *LabsChecker) runnerFunc(c *cron.Cron) func() {
 			c.Stop()
 			return
 		}
-		type Tuple struct {
-			First, Second, Third int
-		}
-		labCountMap := map[string]*Tuple{}
+
+		l.labCountMap.Lock()
+		defer l.labCountMap.Unlock()
+
+		labCountMap := lib.Map[string, *Priority]{}
 		for _, user := range users {
-			if _, ok := labCountMap[user.Lab1]; !ok {
-				labCountMap[user.Lab1] = &Tuple{}
-			}
-			if _, ok := labCountMap[user.Lab2]; !ok {
-				labCountMap[user.Lab2] = &Tuple{}
-			}
-			if _, ok := labCountMap[user.Lab3]; !ok {
-				labCountMap[user.Lab3] = &Tuple{}
-			}
-			labCountMap[user.Lab1].First++
-			labCountMap[user.Lab2].Second++
-			labCountMap[user.Lab3].Third++
+			labCountMap.GetOrInsert(user.Lab1, &Priority{}).First++
+			labCountMap.GetOrInsert(user.Lab2, &Priority{}).Second++
+			labCountMap.GetOrInsert(user.Lab3, &Priority{}).Third++
 		}
-		var labs []*repository.Lab
-		if _, err := l.c.GetAll(ctx, datastore.NewQuery(repository.KindLab), &labs); err != nil {
-			log.Println(err)
-			c.Stop()
-			return
-		}
-		for _, lab := range labs {
-			if _, ok := labCountMap[lab.ID]; !ok {
-				continue
-			}
-			if lab.FirstChoice != labCountMap[lab.ID].First {
-				log.Printf("In lab \"%s\", first count is inconsistent(datastore: %v, labCountMap: %v)\n", lab.Name, lab.FirstChoice, labCountMap[lab.ID].First)
-			}
-			if lab.SecondChoice != labCountMap[lab.ID].Second {
-				log.Printf("In lab \"%s\", second count is inconsistent(datastore: %v, labCountMap: %v)\n", lab.Name, lab.SecondChoice, labCountMap[lab.ID].Second)
-			}
-			if lab.ThirdChice != labCountMap[lab.ID].Third {
-				log.Printf("In lab \"%s\", third count is inconsistent(datastore: %v, labCountMap: %v)\n", lab.Name, lab.ThirdChice, labCountMap[lab.ID].Third)
-			}
-		}
+		l.labCountMap.mp = labCountMap
 	}
 }
