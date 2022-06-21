@@ -14,12 +14,14 @@ import { DefaultLayout } from '../components/layout';
 function Signup(): JSX.Element {
   const auth = getAuth();
   const [token, setToken] = useState<string | null | undefined>(undefined);
+  const [email, setEmail] = useState<string | null | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [params] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
     setToken(params.get('token'));
+    setEmail(params.get('email'));
   }, [params]);
 
   const onSubmit = async (data: SignupFormInput) => {
@@ -54,9 +56,9 @@ function Signup(): JSX.Element {
     }
   };
 
-  if (token === undefined) {
+  if (token === undefined || email === undefined) {
     return <DefaultLayout />;
-  } else if (token === null) {
+  } else if (token === null || email === null) {
     return (
       <DefaultLayout>
         <Alert severity='error'>メールアドレスの確認が完了していません。</Alert>
@@ -71,6 +73,7 @@ function Signup(): JSX.Element {
         errorMessage={errorMessage}
         onError={(e) => setErrorMessage(`${e}`)}
         token={token}
+        email={email}
       />
     </DefaultLayout>
   );

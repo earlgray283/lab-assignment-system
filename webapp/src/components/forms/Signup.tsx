@@ -21,11 +21,13 @@ export function SignupForm(props: {
   errorMessage?: string;
   onError?: (e: unknown) => void;
   token: string;
+  email: string;
 }): JSX.Element {
   const { control, handleSubmit, watch, setValue } = useForm<SignupFormInput>();
 
   useEffect(() => {
     setValue('token', props.token);
+    setValue('email', props.email);
   }, []);
 
   return (

@@ -73,7 +73,7 @@ func (srv *Server) HandleEmailVerification() gin.HandlerFunc {
 		body := lib.MakeMailBody("【lab-assignment-system】メールアドレスの確認", []string{
 			"貴方が静岡大学の学生であることが確認されました。",
 			"以下のアドレスにアクセスし、引き続き新規登録を行ってください。",
-			fmt.Sprintf("https://lab-assignment-system-project.web.app/auth/signup?token=%s", token),
+			fmt.Sprintf("https://lab-assignment-system-project.web.app/auth/signup?token=%s&email=%s", token, email),
 			"",
 			"------------------------------------------------------------",
 			"lab-assignment-system 開発チーム",
