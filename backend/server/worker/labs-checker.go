@@ -77,24 +77,31 @@ func (l *LabsChecker) GetLabCountMap() map[string]*Priority {
 
 func (l *LabsChecker) runnerFunc(c *cron.Cron) func() {
 	return func() {
-		ctx := context.Background()
-		log.Println("Running Labs Checker...")
-		var users []*repository.User
-		if _, err := l.c.GetAll(ctx, datastore.NewQuery(repository.KindUser), &users); err != nil {
+		if err := l.SingleRun(); err != nil {
 			log.Println(err)
 			c.Stop()
-			return
 		}
-
-		l.labCountMap.Lock()
-		defer l.labCountMap.Unlock()
-
-		labCountMap := lib.Map[string, *Priority]{}
-		for _, user := range users {
-			labCountMap.GetOrInsert(user.Lab1, &Priority{}).First++
-			labCountMap.GetOrInsert(user.Lab2, &Priority{}).Second++
-			labCountMap.GetOrInsert(user.Lab3, &Priority{}).Third++
-		}
-		l.labCountMap.mp = labCountMap
 	}
+}
+
+func (l *LabsChecker) SingleRun() error {
+	ctx := context.Background()
+	log.Println("Running Labs Checker...")
+	var users []*repository.User
+	if _, err := l.c.GetAll(ctx, datastore.NewQuery(repository.KindUser), &users); err != nil {
+		return err
+	}
+
+	l.labCountMap.Lock()
+	defer l.labCountMap.Unlock()
+
+	labCountMap := lib.Map[string, *Priority]{}
+	for _, user := range users {
+		labCountMap.GetOrInsert(user.Lab1, &Priority{}).First++
+		labCountMap.GetOrInsert(user.Lab2, &Priority{}).Second++
+		labCountMap.GetOrInsert(user.Lab3, &Priority{}).Third++
+	}
+	l.labCountMap.mp = labCountMap
+
+	return nil
 }

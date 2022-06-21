@@ -53,48 +53,60 @@ func (g *GpaWorker) Get(labId string) *models.LabGpa {
 
 func (g *GpaWorker) runnerFunc(c *cron.Cron) func() {
 	return func() {
-		log.Println("Running Gpa Worker...")
-		ctx := context.Background()
-		m := map[string]*models.LabGpa{}
-		users := make([]*repository.User, 0)
-		log.Println("Fetching All Users...")
-		if _, err := g.c.GetAll(ctx, datastore.NewQuery(repository.KindUser), &users); err != nil {
+		if err := g.SingleRun(); err != nil {
+			log.Println(err)
 			c.Stop()
-			return
 		}
-		log.Println("Totaling Users Gpa...")
-		gpas := make([]float64, 0, len(users))
-		for _, user := range users {
-			if user.Gpa == nil {
-				continue
-			}
-			gpas = append(gpas, *user.Gpa)
-			if _, ok := m[user.Lab1]; !ok {
-				m[user.Lab1] = &models.LabGpa{}
-			}
-			if _, ok := m[user.Lab2]; !ok {
-				m[user.Lab2] = &models.LabGpa{}
-			}
-			if _, ok := m[user.Lab3]; !ok {
-				m[user.Lab3] = &models.LabGpa{}
-			}
-			m[user.Lab1].Gpas1 = append(m[user.Lab1].Gpas1, *user.Gpa)
-			m[user.Lab2].Gpas2 = append(m[user.Lab2].Gpas2, *user.Gpa)
-			m[user.Lab3].Gpas3 = append(m[user.Lab3].Gpas3, *user.Gpa)
-		}
-
-		cmpFunc := func(a, b float64) bool {
-			return a > b
-		}
-		for _, labGpa := range m {
-			slices.SortFunc(labGpa.Gpas1, cmpFunc)
-			slices.SortFunc(labGpa.Gpas2, cmpFunc)
-			slices.SortFunc(labGpa.Gpas3, cmpFunc)
-		}
-		g.m.Lock()
-		g.m.m = m
-		g.m.gpas = gpas
-		g.m.Unlock()
-		log.Println("done")
 	}
+}
+
+func (g *GpaWorker) SingleRun() error {
+	ctx := context.Background()
+	m := map[string]*models.LabGpa{}
+	users := make([]*repository.User, 0)
+
+	log.Println("Running Gpa Worker...")
+
+	log.Println("Fetching All Users...")
+	if _, err := g.c.GetAll(ctx, datastore.NewQuery(repository.KindUser), &users); err != nil {
+		return err
+	}
+
+	log.Println("Totaling Users Gpa...")
+	gpas := make([]float64, 0, len(users))
+	for _, user := range users {
+		if user.Gpa == nil {
+			continue
+		}
+		gpas = append(gpas, *user.Gpa)
+		if _, ok := m[user.Lab1]; !ok {
+			m[user.Lab1] = &models.LabGpa{}
+		}
+		if _, ok := m[user.Lab2]; !ok {
+			m[user.Lab2] = &models.LabGpa{}
+		}
+		if _, ok := m[user.Lab3]; !ok {
+			m[user.Lab3] = &models.LabGpa{}
+		}
+		m[user.Lab1].Gpas1 = append(m[user.Lab1].Gpas1, *user.Gpa)
+		m[user.Lab2].Gpas2 = append(m[user.Lab2].Gpas2, *user.Gpa)
+		m[user.Lab3].Gpas3 = append(m[user.Lab3].Gpas3, *user.Gpa)
+	}
+
+	cmpFunc := func(a, b float64) bool {
+		return a > b
+	}
+	for _, labGpa := range m {
+		slices.SortFunc(labGpa.Gpas1, cmpFunc)
+		slices.SortFunc(labGpa.Gpas2, cmpFunc)
+		slices.SortFunc(labGpa.Gpas3, cmpFunc)
+	}
+	g.m.Lock()
+	g.m.m = m
+	g.m.gpas = gpas
+	g.m.Unlock()
+
+	log.Println("done")
+
+	return nil
 }

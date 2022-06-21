@@ -50,6 +50,14 @@ func (srv *Server) HandlePutUser() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+		if err := srv.gpaWorker.SingleRun(); err != nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		if err := srv.labsChecker.SingleRun(); err != nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
