@@ -6,6 +6,7 @@
 // @author       earlgray
 // @match        https://gakujo.shizuoka.ac.jp/kyoumu/seisekiSearchStudentInit.do*
 // @grant        none
+// @license      MIT
 // ==/UserScript==
 
 (function () {
