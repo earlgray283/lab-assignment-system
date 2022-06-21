@@ -54,7 +54,11 @@ func (l *LabsChecker) Run() {
 func (l *LabsChecker) GetLabCount(labId string) *Priority {
 	l.labCountMap.Lock()
 	defer l.labCountMap.Unlock()
-	return l.labCountMap.mp[labId]
+	v := l.labCountMap.mp[labId]
+	if v == nil {
+		v = &Priority{}
+	}
+	return v
 }
 
 func (l *LabsChecker) GetLabCountMap() map[string]*Priority {
