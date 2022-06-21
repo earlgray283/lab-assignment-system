@@ -36,9 +36,11 @@ type LabsChecker struct {
 }
 
 func NewLabsChecker(c *datastore.Client, interval time.Duration) *LabsChecker {
+	labCountMap := &LabCountMap{}
 	return &LabsChecker{
-		c:        c,
-		interval: interval,
+		c:           c,
+		interval:    interval,
+		labCountMap: labCountMap,
 	}
 }
 
