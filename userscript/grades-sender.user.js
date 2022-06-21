@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         grades-sender
 // @namespace    https://lab-assignment-system-project.web.app/
-// @version      0.1
+// @version      0.1.1
 // @description  成績情報を取得し、lab-assignment-system に送信する。
 // @author       earlgray
 // @match        https://gakujo.shizuoka.ac.jp/kyoumu/seisekiSearchStudentInit.do*
