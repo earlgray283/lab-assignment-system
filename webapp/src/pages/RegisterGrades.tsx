@@ -75,7 +75,7 @@ function RegisterGrades(): JSX.Element {
         <Typography variant='body2'>
           <a
             target='_blank'
-            href='https://greasyfork.org/ja/scripts/446551-grades-sender'
+            href='https://greasyfork.org/ja/scripts/446819-lab-assignment-system-gakujo-grades-sender'
             rel='noreferrer'
           >
             UserScript のリンク
