@@ -28,6 +28,7 @@ function Profile(): JSX.Element {
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined
   );
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [labSurvey, setLabSurvey] = useState<LabSurveyFormInput>({
     lab1: user.apiUser.lab1,
     lab2: user.apiUser.lab2,
@@ -48,6 +49,7 @@ function Profile(): JSX.Element {
       <Typography variant='h4'>Profile</Typography>
       <Box>
         {errorMessage && <Alert severity='error'>errorMessage</Alert>}
+        {successMessage && <Alert severity='success'>{successMessage}</Alert>}
         <Typography variant='h6' marginBottom='10px'>
           研究室アンケートの変更
         </Typography>
@@ -74,6 +76,7 @@ function Profile(): JSX.Element {
             newUser.lab3 = labSurvey.lab3;
             try {
               await updateUser(newUser);
+              setSuccessMessage('更新に成功しました');
             } catch (e) {
               if (e instanceof Error) {
                 setErrorMessage(e.message);
