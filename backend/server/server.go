@@ -1,6 +1,7 @@
 package server
 
 import (
+	"lab-assignment-system-backend/lib"
 	"lab-assignment-system-backend/server/worker"
 	"log"
 	"time"
@@ -16,6 +17,7 @@ type Server struct {
 	logger      *log.Logger
 	dc          *datastore.Client
 	auth        *auth.Client
+	smtp        *lib.SmtpClient
 	gpaWorker   *worker.GpaWorker
 	labsChecker *worker.LabsChecker
 }
@@ -30,7 +32,7 @@ func NewCorsConfig(allowOrigins []string) *cors.Config {
 	return &config
 }
 
-func New(dc *datastore.Client, auth *auth.Client, allowOrigins []string) *Server {
+func New(dc *datastore.Client, auth *auth.Client, smtpCli *lib.SmtpClient, allowOrigins []string) *Server {
 	r := gin.Default()
 	corsConfig := NewCorsConfig(append([]string{"http://localhost:3000"}, allowOrigins...))
 	r.Use(cors.New(*corsConfig))
@@ -38,7 +40,7 @@ func New(dc *datastore.Client, auth *auth.Client, allowOrigins []string) *Server
 	gin.DefaultWriter = logger.Writer()
 	gpaWorker := worker.NewGpaWorker(dc, 5*time.Minute)
 	labsWorker := worker.NewLabsChecker(dc, time.Hour)
-	srv := &Server{r, logger, dc, auth, gpaWorker, labsWorker}
+	srv := &Server{r, logger, dc, auth, smtpCli, gpaWorker, labsWorker}
 
 	srv.GradesRouter()
 	srv.AuthRouter()

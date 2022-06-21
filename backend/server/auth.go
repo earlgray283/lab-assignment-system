@@ -2,10 +2,12 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"lab-assignment-system-backend/lib"
 	"lab-assignment-system-backend/repository"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -34,7 +36,53 @@ func (srv *Server) AuthRouter() {
 	{
 		gradesRouter.POST("/signin", srv.HandleSignin())
 		gradesRouter.POST("/signup", srv.HandleSignup())
+		gradesRouter.POST("/email-verification", srv.HandleEmailVerification())
 		gradesRouter.POST("/signout", srv.HandleSignout()).Use(srv.Authentication())
+	}
+}
+
+func (srv *Server) HandleEmailVerification() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+
+		email := c.PostForm("email")
+		if !validateEmail(email) {
+			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "invalid email"))
+			return
+		}
+
+		token := lib.MakeRandomString(32)
+		now := time.Now()
+		gradeRequestToken := &repository.RegisterToken{
+			Token:     token,
+			Expires:   now.Add(24 * time.Hour),
+			CreatedAt: now,
+		}
+		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
+			if _, err := tx.Put(repository.NewRegisterTokenKey(token), gradeRequestToken); err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
+			srv.logger.Printf("%+v\n", err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+		body := lib.MakeMailBody("【lab-assignment-system】メールアドレスの確認", []string{
+			"貴方が静岡大学の学生であることが確認されました。",
+			"以下のアドレスにアクセスし、引き続き新規登録を行ってください。",
+			fmt.Sprintf("https://lab-assignment-system-project.web.app/auth/signup?token=%s", token),
+			"",
+			"------------------------------------------------------------",
+			"lab-assignment-system 開発チーム",
+			os.Getenv("SENDER_NAME"),
+		})
+		if err := srv.smtp.SendMail(email, body); err != nil {
+			srv.logger.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
 	}
 }
 

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"lab-assignment-system-backend/lib"
 	"lab-assignment-system-backend/server"
 	"log"
 	"os"
@@ -17,6 +18,22 @@ import (
 
 const ProjectId = "lab-assignment-system-project"
 
+var (
+	frontendUrl    string
+	gakujoUrl      string
+	senderEmail    string
+	senderPassword string
+	senderSmtp     string
+)
+
+func getEnvOrFatal(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		log.Fatal("environmental value " + key + " must be set")
+	}
+	return value
+}
+
 func init() {
 	_ = godotenv.Load(".env")
 
@@ -25,17 +42,15 @@ func init() {
 		log.Fatal(err)
 	}
 	time.Local = jst
+
+	frontendUrl = getEnvOrFatal("FRONTEND_URL")
+	gakujoUrl = getEnvOrFatal("GAKUJO_URL")
+	senderEmail = getEnvOrFatal("SENDER_EMAIL")
+	senderPassword = getEnvOrFatal("SENDER_PASSWORD")
+	senderSmtp = getEnvOrFatal("SENDER_SMTP")
 }
 
 func main() {
-	frontendUrl := os.Getenv("FRONTEND_URL")
-	if frontendUrl == "" {
-		log.Fatal("environmental value FRONTEND_URL must be set")
-	}
-	gakujoUrl := os.Getenv("GAKUJO_URL")
-	if gakujoUrl == "" {
-		log.Fatal("environmental value GAKUJO_URL must be set")
-	}
 	dc, err := datastore.NewClient(context.Background(), ProjectId)
 	if err != nil {
 		log.Fatal(err)
@@ -48,12 +63,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	smtpCli := lib.NewSmtpClient(senderEmail, senderPassword, senderSmtp, "587")
 
 	port := "8080"
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
 	}
-	srv := server.New(dc, auth, []string{frontendUrl, gakujoUrl})
+	srv := server.New(dc, auth, smtpCli, []string{frontendUrl, gakujoUrl})
 	if err := srv.Run(fmt.Sprintf(":%v", port)); err != nil {
 		log.Fatal(err)
 	}
