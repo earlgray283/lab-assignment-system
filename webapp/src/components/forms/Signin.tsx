@@ -86,18 +86,12 @@ export function SigninForm(props: {
         )}
       />
 
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'left',
-          alignItems: 'left',
-          flexDirection: 'row',
-        }}
-      >
-        <TypographyLink to='/auth/signup' color='#1976d2'>
-          初めて利用する方はこちら
-        </TypographyLink>
-      </Box>
+      <TypographyLink to='/auth/signup' color='#1976d2'>
+        初めて利用する方はこちら
+      </TypographyLink>
+      <TypographyLink to='/auth/password-reset' color='#1976d2'>
+        パスワードを忘れた方はこちら
+      </TypographyLink>
 
       <Button color='primary' type='submit' variant='contained'>
         Sign in

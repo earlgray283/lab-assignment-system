@@ -15,6 +15,7 @@ import RegisterGrades from './pages/RegisterGrades';
 import { fetchUser } from './apis/user';
 import { signin } from './apis/auth';
 import { sleep } from './lib/util';
+import PasswordReset from './pages/PasswordReset';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -89,6 +90,10 @@ function App(): JSX.Element {
                     <Route path='auth'>
                       <Route path='signup' element={<Signup />} />
                       <Route path='signin' element={<Signin />} />
+                      <Route
+                        path='password-reset'
+                        element={<PasswordReset />}
+                      />
                     </Route>
 
                     <Route path='profile'>
