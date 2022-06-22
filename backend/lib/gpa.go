@@ -17,10 +17,10 @@ func CalculateGpa(subjectGrades []models.SubjectGrade, option *CalculateGpaOptio
 		if subjectGrade.Point < option.ExcludeLowerPoint {
 			continue
 		}
-		// TODO:
-		// if subjectGrade.ReportedAt < option.Until {
-		// 	continue
-		// }
+		reportedAt, _ := time.Parse("2006-01-02", subjectGrade.ReportedAt)
+		if option.Until.Before(reportedAt) {
+			continue
+		}
 		gpSum += subjectGrade.Gp * float64(subjectGrade.UnitNum)
 		unitNum += subjectGrade.UnitNum
 	}
