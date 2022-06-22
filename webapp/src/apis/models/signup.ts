@@ -7,4 +7,5 @@ export interface SignupData {
   lab1: string;
   lab2: string;
   lab3: string;
+  token: string;
 }

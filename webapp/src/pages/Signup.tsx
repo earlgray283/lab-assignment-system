@@ -45,13 +45,16 @@ function Signup(): JSX.Element {
           lab3: data.lab3,
           idToken: idToken,
           password: data.password,
+          token: data.token,
         });
         navigate('/');
       } catch (e: unknown) {
+        console.error(e);
         await credential.user.delete();
         setErrorMessage(`${e}`);
       }
     } catch (e: unknown) {
+      console.error(e);
       setErrorMessage(`${e}`);
     }
   };
