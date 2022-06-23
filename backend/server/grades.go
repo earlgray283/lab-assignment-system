@@ -112,5 +112,11 @@ func (srv *Server) HandlePostGrade() gin.HandlerFunc {
 			// 上書きしたい場合は delete リクエストを送ってもらう
 			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusConflict, "Grade has already existed. Please delete it and try again."))
 		}
+
+		if err := srv.gpaWorker.SingleRun(); err != nil {
+			srv.logger.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
 	}
 }
