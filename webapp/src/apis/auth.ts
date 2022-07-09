@@ -3,9 +3,9 @@ import { ApiError } from './models/api-error';
 import { AxiosError } from 'axios';
 import { http, postJson } from '../lib/axios';
 
-export async function signin(id: string): Promise<void> {
+export async function signin(uid: string): Promise<void> {
   try {
-    await postJson('/auth/signin', { id: id });
+    await postJson('/auth/signin', { uid: uid });
   } catch (e: unknown) {
     if (e instanceof AxiosError) {
       if (e.response) {

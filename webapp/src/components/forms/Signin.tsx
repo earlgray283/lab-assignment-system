@@ -3,7 +3,7 @@ import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 export interface SigninFormInput {
-  id: string;
+  uid: string;
 }
 
 export function SigninForm(props: {
@@ -26,7 +26,7 @@ export function SigninForm(props: {
       )}
 
       <Controller
-        name='id'
+        name='uid'
         defaultValue=''
         control={control}
         rules={{
@@ -36,7 +36,7 @@ export function SigninForm(props: {
           <TextField
             required
             fullWidth
-            label='id'
+            label='uid'
             type='text'
             error={fieldState.error !== undefined}
             helperText={fieldState.error?.message}

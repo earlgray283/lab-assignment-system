@@ -51,7 +51,7 @@ export function Appbar(): JSX.Element {
                 onClick={(event) => setAnchorEl(event.currentTarget)}
                 sx={{ color: 'white' }}
               >
-                {user.id ?? '<名前未設定>'}
+                {user.uid ?? '<名前未設定>'}
               </Button>
             ) : (
               <TypographyLink to='/auth/signin'>SIGN IN</TypographyLink>

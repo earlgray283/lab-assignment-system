@@ -12,7 +12,7 @@ function Signin(): JSX.Element {
   const onSubmit = async (data: SigninFormInput) => {
     setLoading(true);
     try {
-      await signin(data.id);
+      await signin(data.uid);
       navigate('/');
     } catch (e: unknown) {
       console.error(e);

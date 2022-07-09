@@ -1,5 +1,5 @@
 export interface ApiUser {
-  id: string;
+  uid: string;
   gpa?: number;
   lab1: string;
   lab2: string;
