@@ -8,11 +8,9 @@ import {
   MenuItem,
   Toolbar,
 } from '@mui/material';
-import { getAuth } from 'firebase/auth';
 import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GitHubIcon from '@mui/icons-material/GitHub';
-
 import { UserContext } from '../App';
 import { TypographyLink } from './util';
 import { signout } from '../apis/auth';
@@ -21,12 +19,10 @@ const repoLink = 'https://github.com/earlgray283/lab-assignment-system';
 
 export function Appbar(): JSX.Element {
   const user = useContext(UserContext);
-  const auth = getAuth();
   const navigation = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const handleSignout = async () => {
     setAnchorEl(null);
-    await auth.signOut();
     await signout();
   };
 
@@ -55,7 +51,7 @@ export function Appbar(): JSX.Element {
                 onClick={(event) => setAnchorEl(event.currentTarget)}
                 sx={{ color: 'white' }}
               >
-                {user.firebaseUser.displayName ?? '<名前未設定>'}
+                {user.id ?? '<名前未設定>'}
               </Button>
             ) : (
               <TypographyLink to='/auth/signin'>SIGN IN</TypographyLink>

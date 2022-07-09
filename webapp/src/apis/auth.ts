@@ -1,27 +1,11 @@
+import { ApiUser } from './models/user';
 import { ApiError } from './models/api-error';
 import { AxiosError } from 'axios';
 import { http, postJson } from '../lib/axios';
-import { SignupData } from './models/signup';
 
-export async function signup(data: SignupData): Promise<void> {
+export async function signin(id: string): Promise<void> {
   try {
-    await postJson('/auth/signup', data);
-  } catch (e: unknown) {
-    if (e instanceof AxiosError) {
-      if (e.response) {
-        const errorJson = e.response.data as ApiError;
-        throw new Error(errorJson.message);
-      } else {
-        throw new Error(e.message);
-      }
-    }
-    throw new Error(e as string);
-  }
-}
-
-export async function signin(idToken: string): Promise<void> {
-  try {
-    await postJson('/auth/signin', { idToken: idToken });
+    await postJson('/auth/signin', { id: id });
   } catch (e: unknown) {
     if (e instanceof AxiosError) {
       if (e.response) {
@@ -51,11 +35,9 @@ export async function signout(): Promise<void> {
   }
 }
 
-export async function emailVerification(email: string): Promise<void> {
-  const data = new URLSearchParams();
-  data.set('email', email);
+export async function confirmSession(): Promise<ApiUser> {
   try {
-    await http.post('/auth/email-verification', data);
+    return await http.get('/auth/signin');
   } catch (e: unknown) {
     if (e instanceof AxiosError) {
       if (e.response) {
