@@ -8,7 +8,6 @@ require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/joho/godotenv v1.4.0
 	github.com/robfig/cron v1.2.0
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
 	google.golang.org/api v0.84.0
 )
@@ -34,6 +33,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.2 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	go.opencensus.io v0.23.0 // indirect
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
 	golang.org/x/net v0.0.0-20220614195744-fb05da6f9022 // indirect
 	golang.org/x/oauth2 v0.0.0-20220608161450-d0670ef3b1eb // indirect
 	golang.org/x/sys v0.0.0-20220614162138-6c1b26c55098 // indirect
