@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type SignupForm struct {
@@ -52,11 +51,6 @@ func (srv *Server) HandleSignin() gin.HandlerFunc {
 		if err := srv.dc.Get(c.Request.Context(), repository.NewUserKey(signinForm.UID), &user); err != nil {
 			srv.logger.Printf("%+v\n", err)
 			c.AbortWithStatus(http.StatusNotFound)
-			return
-		}
-		if err := bcrypt.CompareHashAndPassword([]byte(user.EncryptedPassword), []byte(signinForm.Password)); err != nil {
-			srv.logger.Printf("%+v\n", err)
-			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 

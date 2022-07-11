@@ -9,7 +9,6 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const BcryptCost = 11
@@ -37,13 +36,7 @@ func (srv *Server) HandlePutUser() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-		encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), BcryptCost)
-		if err != nil {
-			srv.logger.Println(err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
-		repoNewUser, userKey := repository.NewUser(newUser.UID, string(encryptedPassword), newUser.Lab1, newUser.Lab2, newUser.Lab3, user.Gpa, user.CreatedAt)
+		repoNewUser, userKey := repository.NewUser(newUser.UID, newUser.Lab1, newUser.Lab2, newUser.Lab3, user.Gpa, user.CreatedAt)
 		repoNewUser.UpdatedAt = lib.PointerOfValue(time.Now())
 		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 			if _, err := tx.Put(userKey, repoNewUser); err != nil {
@@ -102,7 +95,6 @@ func (srv *Server) HandleGetUser() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-		user.EncryptedPassword = ""
 		c.JSON(http.StatusOK, user)
 	}
 }

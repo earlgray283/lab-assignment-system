@@ -23,7 +23,6 @@ const ExcludeLowerPoint = 60
 func NewCorsConfig(allowOrigins []string) *cors.Config {
 	config := cors.DefaultConfig()
 	config.AllowOrigins = allowOrigins
-	config.AllowHeaders = append(config.AllowHeaders, "register-token")
 	config.AllowCredentials = true
 	return &config
 }
