@@ -11,7 +11,7 @@ type User struct {
 	Lab1      string
 	Lab2      string
 	Lab3      string
-	Gpa       *float64
+	Gpa       float64
 	CreatedAt time.Time
 	UpdatedAt *time.Time
 }
@@ -22,7 +22,7 @@ func NewUserKey(uid string) *datastore.Key {
 	return datastore.NameKey(KindUser, uid, nil)
 }
 
-func NewUser(uid, lab1, lab2, lab3 string, gpa *float64, createdAt time.Time) (*User, *datastore.Key) {
+func NewUser(uid, lab1, lab2, lab3 string, gpa float64, createdAt time.Time) (*User, *datastore.Key) {
 	return &User{
 		UID:       uid,
 		Lab1:      lab1,

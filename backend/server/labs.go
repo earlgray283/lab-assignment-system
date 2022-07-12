@@ -75,7 +75,7 @@ func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
 			for _, optField := range optFields {
 				switch optField {
 				case "grade":
-					labs[i].Grades = srv.gpaWorker.Get(repoLab.ID)
+					labs[i].Grades = srv.labGpa.Map[repoLab.ID]
 				}
 			}
 		}

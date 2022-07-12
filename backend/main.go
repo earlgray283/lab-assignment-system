@@ -17,8 +17,8 @@ import (
 const ProjectId = "lab-assignment-system-project"
 
 var (
-	frontendUrl    string
-	gakujoUrl      string
+	frontendUrl string
+	gakujoUrl   string
 )
 
 func getEnvOrFatal(key string) string {
@@ -52,7 +52,10 @@ func main() {
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
 	}
-	srv := server.New(dc, []string{frontendUrl, gakujoUrl})
+	srv, err := server.New(dc, []string{frontendUrl, gakujoUrl})
+	if err != nil {
+		log.Fatal(err)
+	}
 	if err := srv.Run(fmt.Sprintf(":%v", port)); err != nil {
 		log.Fatal(err)
 	}

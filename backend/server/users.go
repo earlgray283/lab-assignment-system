@@ -11,8 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const BcryptCost = 11
-
 func (srv *Server) UserRouter() {
 	r := srv.r.Group("/users")
 	r.Use(srv.Authentication())
@@ -45,10 +43,6 @@ func (srv *Server) HandlePutUser() gin.HandlerFunc {
 			return nil
 		}); err != nil {
 			srv.logger.Println(err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
-		if err := srv.gpaWorker.SingleRun(); err != nil {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
