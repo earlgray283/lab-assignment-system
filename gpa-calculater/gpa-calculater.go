@@ -89,7 +89,7 @@ func main() {
 			gradeMap[grade.StudentNumber] = &Pair[float64, int]{}
 		}
 		// 不可は無視する
-		if grade.Point < 60 {
+		if grade.Point < 60 || 100 < grade.Point {
 			continue
 		}
 		if grade.Grade == "合" {
