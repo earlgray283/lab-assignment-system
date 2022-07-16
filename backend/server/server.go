@@ -49,6 +49,9 @@ func New(dc *datastore.Client, allowOrigins []string) (*Server, error) {
 
 func (srv *Server) Run(addr ...string) error {
 	errc := make(chan error)
+	if err := srv.labsChecker.SingleRun(); err != nil {
+		return err
+	}
 	go func() {
 		err := srv.r.Run(addr...)
 		if err != nil {

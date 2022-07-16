@@ -45,7 +45,6 @@ function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
           } else {
             rank = lab.grades.gpas3.indexOf(props.gpa) + 1;
           }
-          // TODO: omitempty を直せ
           const gpas = Array.prototype.concat(
             lab.grades.gpas1 ?? [],
             lab.grades.gpas2 ?? [],
