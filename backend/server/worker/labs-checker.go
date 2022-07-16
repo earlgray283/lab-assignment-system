@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"fmt"
 	"lab-assignment-system-backend/lib"
 	"lab-assignment-system-backend/repository"
 	"log"
@@ -10,7 +9,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"github.com/robfig/cron"
 )
 
 type LabCountMap struct {
@@ -44,13 +42,6 @@ func NewLabsChecker(c *datastore.Client, interval time.Duration) *LabsChecker {
 	}
 }
 
-func (l *LabsChecker) Run() {
-	c := cron.New()
-	l.runnerFunc(c)()
-	_ = c.AddFunc(fmt.Sprintf("@every %v", l.interval.String()), l.runnerFunc(c))
-	c.Run()
-}
-
 func (l *LabsChecker) GetLabCount(labId string) *Priority {
 	l.labCountMap.Lock()
 	defer l.labCountMap.Unlock()
@@ -75,15 +66,6 @@ func (l *LabsChecker) GetLabCountMap() map[string]*Priority {
 	return mp
 }
 
-func (l *LabsChecker) runnerFunc(c *cron.Cron) func() {
-	return func() {
-		if err := l.SingleRun(); err != nil {
-			log.Println(err)
-			c.Stop()
-		}
-	}
-}
-
 func (l *LabsChecker) SingleRun() error {
 	ctx := context.Background()
 	log.Println("Running Labs Checker...")
@@ -97,9 +79,12 @@ func (l *LabsChecker) SingleRun() error {
 
 	labCountMap := lib.Map[string, *Priority]{}
 	for _, user := range users {
-		labCountMap.GetOrInsert(user.Lab1, &Priority{}).First++
-		labCountMap.GetOrInsert(user.Lab2, &Priority{}).Second++
-		labCountMap.GetOrInsert(user.Lab3, &Priority{}).Third++
+		if user.Lab1 == nil || user.Lab2 == nil || user.Lab3 == nil {
+			continue
+		}
+		labCountMap.GetOrInsert(*user.Lab1, &Priority{}).First++
+		labCountMap.GetOrInsert(*user.Lab2, &Priority{}).Second++
+		labCountMap.GetOrInsert(*user.Lab3, &Priority{}).Third++
 	}
 	l.labCountMap.mp = labCountMap
 

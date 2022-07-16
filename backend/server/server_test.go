@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"cloud.google.com/go/datastore"
-	firebase "firebase.google.com/go"
 	"github.com/joho/godotenv"
 	"google.golang.org/api/option"
 )
@@ -71,20 +70,12 @@ func launchServer() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fa, err := firebase.NewApp(context.Background(), &firebase.Config{ProjectID: ProjectId}, option.WithCredentialsFile("../credentials.json"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	auth, err := fa.Auth(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	port := "8080"
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
 	}
-	srv := New(dc, auth, nil, []string{frontendUrl, gakujoUrl})
+	srv, _ := New(dc, []string{frontendUrl, gakujoUrl})
 	if err := srv.Run(fmt.Sprintf(":%v", port)); err != nil {
 		log.Fatal(err)
 	}

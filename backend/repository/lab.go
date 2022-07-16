@@ -2,16 +2,18 @@ package repository
 
 import (
 	"context"
+	"lab-assignment-system-backend/server/models"
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"golang.org/x/exp/slices"
 )
 
 type Lab struct {
-	ID           string
-	Name         string
-	Capacity     int
-	CreatedAt    time.Time
+	ID        string
+	Name      string
+	Capacity  int
+	CreatedAt time.Time
 }
 
 const KindLab = "lab"
@@ -47,4 +49,50 @@ func FetchAllLabs(ctx context.Context, c *datastore.Client, labIds []string) ([]
 		return nil, false, err
 	}
 	return repoLabs, true, nil
+}
+
+type LabGpa struct {
+	Map  map[string]*models.LabGpa
+	Gpas []float64
+}
+
+func CalculateLabGpa(c *datastore.Client) (*LabGpa, error) {
+	ctx := context.Background()
+	m := map[string]*models.LabGpa{}
+	users := make([]*User, 0)
+
+	if _, err := c.GetAll(ctx, datastore.NewQuery(KindUser), &users); err != nil {
+		return nil, err
+	}
+
+	gpas := make([]float64, 0, len(users))
+	for _, user := range users {
+		gpas = append(gpas, user.Gpa)
+		if user.Lab1 == nil || user.Lab2 == nil || user.Lab3 == nil {
+			continue
+		}
+		if _, ok := m[*user.Lab1]; !ok {
+			m[*user.Lab1] = &models.LabGpa{}
+		}
+		if _, ok := m[*user.Lab2]; !ok {
+			m[*user.Lab2] = &models.LabGpa{}
+		}
+		if _, ok := m[*user.Lab3]; !ok {
+			m[*user.Lab3] = &models.LabGpa{}
+		}
+		m[*user.Lab1].Gpas1 = append(m[*user.Lab1].Gpas1, user.Gpa)
+		m[*user.Lab2].Gpas2 = append(m[*user.Lab2].Gpas2, user.Gpa)
+		m[*user.Lab3].Gpas3 = append(m[*user.Lab3].Gpas3, user.Gpa)
+	}
+
+	cmpFunc := func(a, b float64) bool {
+		return a > b
+	}
+	for _, labGpa := range m {
+		slices.SortFunc(labGpa.Gpas1, cmpFunc)
+		slices.SortFunc(labGpa.Gpas2, cmpFunc)
+		slices.SortFunc(labGpa.Gpas3, cmpFunc)
+	}
+
+	return &LabGpa{m, gpas}, nil
 }

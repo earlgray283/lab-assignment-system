@@ -1,5 +1,4 @@
 import { Box, CssBaseline, LinearProgress } from '@mui/material';
-import { User as FirebaseUser, getAuth } from 'firebase/auth';
 import { ApiUser } from './apis/models/user';
 import React, {
   createContext,
@@ -9,26 +8,17 @@ import React, {
   useState,
 } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-
 import { Appbar } from './components/Appbar';
-import RegisterGrades from './pages/RegisterGrades';
 import { fetchUser } from './apis/user';
-import { signin } from './apis/auth';
-import { sleep } from './lib/util';
-import PasswordReset from './pages/PasswordReset';
-import EmailVerification from './pages/EmailVerification';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Signin = lazy(() => import('./pages/Signin'));
-const Signup = lazy(() => import('./pages/Signup'));
 
-export interface User {
-  firebaseUser: FirebaseUser;
-  apiUser: ApiUser;
-}
-
-export const UserContext = createContext<User | null | undefined>(undefined);
+export const UserContext = createContext<ApiUser | null | undefined>(undefined);
+export const UserDispatchContext = createContext<
+  React.Dispatch<React.SetStateAction<ApiUser | null | undefined>>
+>(() => undefined);
 export const LoadingStateContext = createContext(false);
 export const LoadingDispatchContext = createContext<
   React.Dispatch<React.SetStateAction<boolean>>
@@ -36,83 +26,59 @@ export const LoadingDispatchContext = createContext<
 
 function App(): JSX.Element {
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<User | null | undefined>(
+  const [currentUser, setCurrentUser] = useState<ApiUser | null | undefined>(
     undefined
   );
-  const auth = getAuth();
 
   useEffect(() => {
-    auth.onAuthStateChanged(async (firebaseUser) => {
-      setCurrentUser(undefined);
-      if (firebaseUser) {
-        for (let i = 0; i < 5; i++) {
-          try {
-            const apiUser = await fetchUser();
-            setCurrentUser({ firebaseUser, apiUser });
-            break;
-          } catch (e) {
-            try {
-              const idToken = await firebaseUser.getIdToken();
-              await signin(idToken);
-            } catch (e) {
-              await sleep(100);
-            }
-          }
-        }
-      } else {
+    setCurrentUser(undefined);
+    (async () => {
+      try {
+        const apiUser = await fetchUser();
+        setCurrentUser(apiUser);
+      } catch (e) {
         setCurrentUser(null);
       }
       setLoading(false);
-    });
+    })();
   }, []);
 
   return (
     <LoadingStateContext.Provider value={loading}>
       <LoadingDispatchContext.Provider value={setLoading}>
         <UserContext.Provider value={currentUser}>
-          {/* reset css */}
-          <CssBaseline />
+          <UserDispatchContext.Provider value={setCurrentUser}>
+            {/* reset css */}
+            <CssBaseline />
 
-          <BrowserRouter>
-            <Appbar />
-            {loading && <LinearProgress />}
-            <Suspense fallback={<LinearProgress />}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                }}
-              >
-                <Routes>
-                  <Route path='*' element={<NotFound />} />
-                  <Route path='/'>
-                    <Route index element={<Dashboard />} />
+            <BrowserRouter>
+              <Appbar />
+              {loading && <LinearProgress />}
+              <Suspense fallback={<LinearProgress />}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Routes>
+                    <Route path='*' element={<NotFound />} />
+                    <Route path='/'>
+                      <Route index element={<Dashboard />} />
 
-                    <Route path='auth'>
-                      <Route path='signup' element={<Signup />} />
-                      <Route path='signin' element={<Signin />} />
-                      <Route
-                        path='password-reset'
-                        element={<PasswordReset />}
-                      />
-                      <Route
-                        path='email-verification'
-                        element={<EmailVerification />}
-                      />
+                      <Route path='auth'>
+                        <Route path='signin' element={<Signin />} />
+                      </Route>
+
+                      <Route path='profile'>
+                        <Route index element={<Profile />} />
+                      </Route>
                     </Route>
-
-                    <Route path='profile'>
-                      <Route index element={<Profile />} />
-                      <Route
-                        path='register-grades'
-                        element={<RegisterGrades />}
-                      />
-                    </Route>
-                  </Route>
-                </Routes>
-              </Box>
-            </Suspense>
-          </BrowserRouter>
+                  </Routes>
+                </Box>
+              </Suspense>
+            </BrowserRouter>
+          </UserDispatchContext.Provider>
         </UserContext.Provider>
       </LoadingDispatchContext.Provider>
     </LoadingStateContext.Provider>

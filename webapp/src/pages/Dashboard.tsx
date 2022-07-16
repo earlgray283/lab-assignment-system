@@ -24,19 +24,16 @@ function Dashboard(): JSX.Element {
   return (
     <FullLayout>
       <Stack spacing={2}>
-        {user.apiUser.gpa === undefined && (
+        {(!user.lab1 || !user.lab2 || !user.lab3) && (
           <Alert severity='error'>
-            成績情報が登録されていないようです。
-            <Link to='/profile/register-grades'>成績情報の登録ページ</Link>
-            から登録作業を行って下さい。
+            研究室アンケートに回答されていません。
+            <Link to='/profile'>研究室アンケートページ</Link>
+            から回答を行って下さい。
           </Alert>
         )}
-        {user.apiUser.gpa && <GpaCard gpa={user.apiUser.gpa} />}
-        {user.apiUser.gpa && (
-          <LabCard
-            labIds={[user.apiUser.lab1, user.apiUser.lab2, user.apiUser.lab3]}
-            gpa={user.apiUser.gpa}
-          />
+        {user.gpa && <GpaCard gpa={user.gpa} />}
+        {user.lab1 && user.lab2 && user.lab3 && (
+          <LabCard labIds={[user.lab1, user.lab2, user.lab3]} gpa={user.gpa} />
         )}
       </Stack>
     </FullLayout>
