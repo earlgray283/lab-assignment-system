@@ -56,11 +56,18 @@ func (srv *Server) HandleUpdateLabs() gin.HandlerFunc {
 
 func (srv *Server) HandleGetUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user, err := GetUser(c)
+		repoUser, err := GetUser(c)
 		if err != nil {
 			srv.logger.Println(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
+		}
+		user := &models.User{
+			UID:  repoUser.UID,
+			Gpa:  repoUser.Gpa,
+			Lab1: repoUser.Lab1,
+			Lab2: repoUser.Lab2,
+			Lab3: repoUser.Lab3,
 		}
 		c.JSON(http.StatusOK, user)
 	}

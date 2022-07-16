@@ -42,6 +42,7 @@ func New(dc *datastore.Client, allowOrigins []string) (*Server, error) {
 	srv.AuthRouter()
 	srv.LabsRouter()
 	srv.UserRouter()
+	srv.GradesRouter()
 
 	return srv, nil
 }

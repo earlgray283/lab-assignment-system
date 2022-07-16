@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gin-gonic/gin"
 )
 
@@ -56,7 +57,17 @@ func (srv *Server) HandleSignin() gin.HandlerFunc {
 
 		now := time.Now()
 		sessionValue := lib.MakeRandomString(32)
-		repository.NewSession(user.UID, sessionValue, now, now.Add(sessionExpiresIn))
+		session, sessionKey := repository.NewSession(user.UID, sessionValue, now, now.Add(sessionExpiresIn))
+		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
+			if _, err := tx.Put(sessionKey, session); err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
+			srv.logger.Printf("%+v\n", err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
 		sessionCookie, err := makeSessionCookie(ctx, sessionValue)
 		if err != nil {
 			srv.logger.Printf("%+v\n", err)
@@ -64,6 +75,8 @@ func (srv *Server) HandleSignin() gin.HandlerFunc {
 			return
 		}
 		http.SetCookie(c.Writer, sessionCookie)
+
+		c.JSON(http.StatusOK, &user)
 	}
 }
 
