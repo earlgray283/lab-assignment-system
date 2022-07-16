@@ -30,9 +30,9 @@ function Profile(): JSX.Element {
   );
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [labSurvey, setLabSurvey] = useState<LabSurveyFormInput>({
-    lab1: user.lab1,
-    lab2: user.lab2,
-    lab3: user.lab3,
+    lab1: user.lab1 ?? '',
+    lab2: user.lab2 ?? '',
+    lab3: user.lab3 ?? '',
   });
 
   return (
