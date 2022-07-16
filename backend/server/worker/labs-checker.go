@@ -79,6 +79,9 @@ func (l *LabsChecker) SingleRun() error {
 
 	labCountMap := lib.Map[string, *Priority]{}
 	for _, user := range users {
+		if user.Lab1 == nil || user.Lab2 == nil || user.Lab3 == nil {
+			continue
+		}
 		labCountMap.GetOrInsert(*user.Lab1, &Priority{}).First++
 		labCountMap.GetOrInsert(*user.Lab2, &Priority{}).Second++
 		labCountMap.GetOrInsert(*user.Lab3, &Priority{}).Third++

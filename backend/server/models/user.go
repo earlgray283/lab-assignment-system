@@ -3,9 +3,9 @@ package models
 type User struct {
 	UID  string  `json:"uid"`
 	Gpa  float64 `json:"gpa"`
-	Lab1 *string `json:"lab_1"`
-	Lab2 *string `json:"lab_2"`
-	Lab3 *string `json:"lab_3"`
+	Lab1 *string `json:"lab1"`
+	Lab2 *string `json:"lab2"`
+	Lab3 *string `json:"lab3"`
 }
 
 type UserLab struct {
