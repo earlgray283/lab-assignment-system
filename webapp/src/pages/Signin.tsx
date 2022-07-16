@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signin } from '../apis/auth';
-import { LoadingDispatchContext } from '../App';
+import { LoadingDispatchContext, UserDispatchContext } from '../App';
 import { SigninForm, SigninFormInput } from '../components/forms';
 import { DefaultLayout } from '../components/layout';
 
@@ -9,10 +9,13 @@ function Signin(): JSX.Element {
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const navigate = useNavigate();
   const setLoading = useContext(LoadingDispatchContext);
+  const setCurrentUser = useContext(UserDispatchContext);
+
   const onSubmit = async (data: SigninFormInput) => {
     setLoading(true);
     try {
-      await signin(data.uid);
+      const user = await signin(data.uid);
+      setCurrentUser(user);
       navigate('/');
     } catch (e: unknown) {
       console.error(e);

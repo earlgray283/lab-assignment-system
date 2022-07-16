@@ -9,13 +9,16 @@ import React, {
 } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Appbar } from './components/Appbar';
-import { confirmSession } from './apis/auth';
+import { fetchUser } from './apis/user';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Signin = lazy(() => import('./pages/Signin'));
 
 export const UserContext = createContext<ApiUser | null | undefined>(undefined);
+export const UserDispatchContext = createContext<
+  React.Dispatch<React.SetStateAction<ApiUser | null | undefined>>
+>(() => undefined);
 export const LoadingStateContext = createContext(false);
 export const LoadingDispatchContext = createContext<
   React.Dispatch<React.SetStateAction<boolean>>
@@ -31,7 +34,7 @@ function App(): JSX.Element {
     setCurrentUser(undefined);
     (async () => {
       try {
-        const apiUser = await confirmSession();
+        const apiUser = await fetchUser();
         setCurrentUser(apiUser);
       } catch (e) {
         setCurrentUser(null);
@@ -44,36 +47,38 @@ function App(): JSX.Element {
     <LoadingStateContext.Provider value={loading}>
       <LoadingDispatchContext.Provider value={setLoading}>
         <UserContext.Provider value={currentUser}>
-          {/* reset css */}
-          <CssBaseline />
+          <UserDispatchContext.Provider value={setCurrentUser}>
+            {/* reset css */}
+            <CssBaseline />
 
-          <BrowserRouter>
-            <Appbar />
-            {loading && <LinearProgress />}
-            <Suspense fallback={<LinearProgress />}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                }}
-              >
-                <Routes>
-                  <Route path='*' element={<NotFound />} />
-                  <Route path='/'>
-                    <Route index element={<Dashboard />} />
+            <BrowserRouter>
+              <Appbar />
+              {loading && <LinearProgress />}
+              <Suspense fallback={<LinearProgress />}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Routes>
+                    <Route path='*' element={<NotFound />} />
+                    <Route path='/'>
+                      <Route index element={<Dashboard />} />
 
-                    <Route path='auth'>
-                      <Route path='signin' element={<Signin />} />
+                      <Route path='auth'>
+                        <Route path='signin' element={<Signin />} />
+                      </Route>
+
+                      <Route path='profile'>
+                        <Route index element={<Profile />} />
+                      </Route>
                     </Route>
-
-                    <Route path='profile'>
-                      <Route index element={<Profile />} />
-                    </Route>
-                  </Route>
-                </Routes>
-              </Box>
-            </Suspense>
-          </BrowserRouter>
+                  </Routes>
+                </Box>
+              </Suspense>
+            </BrowserRouter>
+          </UserDispatchContext.Provider>
         </UserContext.Provider>
       </LoadingDispatchContext.Provider>
     </LoadingStateContext.Provider>

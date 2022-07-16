@@ -5,3 +5,9 @@ export interface ApiUser {
   lab2: string;
   lab3: string;
 }
+
+export interface UserLab {
+  lab1: string;
+  lab2: string;
+  lab3: string;
+}

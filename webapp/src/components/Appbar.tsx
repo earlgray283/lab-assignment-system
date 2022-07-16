@@ -11,7 +11,7 @@ import {
 import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GitHubIcon from '@mui/icons-material/GitHub';
-import { UserContext } from '../App';
+import { UserContext, UserDispatchContext } from '../App';
 import { TypographyLink } from './util';
 import { signout } from '../apis/auth';
 
@@ -19,11 +19,14 @@ const repoLink = 'https://github.com/earlgray283/lab-assignment-system';
 
 export function Appbar(): JSX.Element {
   const user = useContext(UserContext);
-  const navigation = useNavigate();
+  const setCurrentUser = useContext(UserDispatchContext);
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const handleSignout = async () => {
     setAnchorEl(null);
     await signout();
+    setCurrentUser(null);
+    navigate('/auth/signin');
   };
 
   return (
@@ -65,7 +68,7 @@ export function Appbar(): JSX.Element {
               'aria-labelledby': 'basic-button',
             }}
           >
-            <MenuItem onClick={() => navigation('/profile')}>Profile</MenuItem>
+            <MenuItem onClick={() => navigate('/profile')}>Profile</MenuItem>
             <Divider />
             <MenuItem onClick={async () => await handleSignout()}>
               Logout
