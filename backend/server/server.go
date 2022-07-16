@@ -19,8 +19,6 @@ type Server struct {
 	labGpa      *repository.LabGpa
 }
 
-const ExcludeLowerPoint = 60
-
 func NewCorsConfig(allowOrigins []string) *cors.Config {
 	config := cors.DefaultConfig()
 	config.AllowOrigins = allowOrigins
@@ -50,9 +48,6 @@ func New(dc *datastore.Client, allowOrigins []string) (*Server, error) {
 
 func (srv *Server) Run(addr ...string) error {
 	errc := make(chan error)
-	go func() {
-		srv.labsChecker.Run()
-	}()
 	go func() {
 		err := srv.r.Run(addr...)
 		if err != nil {

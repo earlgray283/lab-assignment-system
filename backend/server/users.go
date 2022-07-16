@@ -12,32 +12,32 @@ import (
 )
 
 func (srv *Server) UserRouter() {
-	r := srv.r.Group("/users")
+	r := srv.r.Group("/user")
 	r.Use(srv.Authentication())
 	{
 		r.GET("", srv.HandleGetUser())
-		r.PUT("", srv.HandlePutUser())
+		r.PUT("/lab", srv.HandleUpdateLabs())
 	}
 }
 
-func (srv *Server) HandlePutUser() gin.HandlerFunc {
+func (srv *Server) HandleUpdateLabs() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
-		var newUser models.User
-		if err := c.BindJSON(&newUser); err != nil {
+		user, _ := GetUser(c)
+		var userLab models.UserLab
+		if err := c.BindJSON(&userLab); err != nil {
 			srv.logger.Println(err)
 			return
 		}
-		var user repository.User
-		if err := srv.dc.Get(ctx, repository.NewUserKey(newUser.UID), &user); err != nil {
-			srv.logger.Println(err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
-		repoNewUser, userKey := repository.NewUser(newUser.UID, newUser.Lab1, newUser.Lab2, newUser.Lab3, user.Gpa, user.CreatedAt)
-		repoNewUser.UpdatedAt = lib.PointerOfValue(time.Now())
+
+		user.Lab1 = &userLab.Lab1
+		user.Lab2 = &userLab.Lab2
+		user.Lab3 = &userLab.Lab3
+		user.UpdatedAt = lib.PointerOfValue(time.Now())
+
+		userKey := repository.NewUserKey(user.UID)
 		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-			if _, err := tx.Put(userKey, repoNewUser); err != nil {
+			if _, err := tx.Put(userKey, user); err != nil {
 				return err
 			}
 			return nil
@@ -47,34 +47,6 @@ func (srv *Server) HandlePutUser() gin.HandlerFunc {
 			return
 		}
 		if err := srv.labsChecker.SingleRun(); err != nil {
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
-	}
-}
-
-func (srv *Server) HandleDeleteUser() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx := c.Request.Context()
-		uid := c.Param("uid")
-		userKey := repository.NewUserKey(uid)
-		var user repository.User
-		if err := srv.dc.Get(ctx, userKey, &user); err != nil {
-			srv.logger.Println(err)
-			if err == datastore.ErrNoSuchEntity {
-				lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "no such user"))
-			} else {
-				c.AbortWithStatus(http.StatusInternalServerError)
-			}
-			return
-		}
-		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-			if err := tx.Delete(userKey); err != nil {
-				return err
-			}
-			return nil
-		}); err != nil {
-			srv.logger.Println(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}

@@ -68,18 +68,21 @@ func CalculateLabGpa(c *datastore.Client) (*LabGpa, error) {
 	gpas := make([]float64, 0, len(users))
 	for _, user := range users {
 		gpas = append(gpas, user.Gpa)
-		if _, ok := m[user.Lab1]; !ok {
-			m[user.Lab1] = &models.LabGpa{}
+		if user.Lab1 == nil || user.Lab2 == nil || user.Lab3 == nil {
+			continue
 		}
-		if _, ok := m[user.Lab2]; !ok {
-			m[user.Lab2] = &models.LabGpa{}
+		if _, ok := m[*user.Lab1]; !ok {
+			m[*user.Lab1] = &models.LabGpa{}
 		}
-		if _, ok := m[user.Lab3]; !ok {
-			m[user.Lab3] = &models.LabGpa{}
+		if _, ok := m[*user.Lab2]; !ok {
+			m[*user.Lab2] = &models.LabGpa{}
 		}
-		m[user.Lab1].Gpas1 = append(m[user.Lab1].Gpas1, user.Gpa)
-		m[user.Lab2].Gpas2 = append(m[user.Lab2].Gpas2, user.Gpa)
-		m[user.Lab3].Gpas3 = append(m[user.Lab3].Gpas3, user.Gpa)
+		if _, ok := m[*user.Lab3]; !ok {
+			m[*user.Lab3] = &models.LabGpa{}
+		}
+		m[*user.Lab1].Gpas1 = append(m[*user.Lab1].Gpas1, user.Gpa)
+		m[*user.Lab2].Gpas2 = append(m[*user.Lab2].Gpas2, user.Gpa)
+		m[*user.Lab3].Gpas3 = append(m[*user.Lab3].Gpas3, user.Gpa)
 	}
 
 	cmpFunc := func(a, b float64) bool {
