@@ -50,6 +50,7 @@ func (srv *Server) HandleUpdateLabs() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+		c.JSON(http.StatusOK, user)
 	}
 }
 
