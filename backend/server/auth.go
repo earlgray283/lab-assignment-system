@@ -4,6 +4,7 @@ import (
 	"context"
 	"lab-assignment-system-backend/lib"
 	"lab-assignment-system-backend/repository"
+	"lab-assignment-system-backend/server/models"
 	"log"
 	"net/http"
 	"time"
@@ -48,8 +49,8 @@ func (srv *Server) HandleSignin() gin.HandlerFunc {
 			return
 		}
 
-		var user repository.User
-		if err := srv.dc.Get(c.Request.Context(), repository.NewUserKey(signinForm.UID), &user); err != nil {
+		var repoUser repository.User
+		if err := srv.dc.Get(c.Request.Context(), repository.NewUserKey(signinForm.UID), &repoUser); err != nil {
 			srv.logger.Printf("%+v\n", err)
 			c.AbortWithStatus(http.StatusNotFound)
 			return
@@ -57,7 +58,7 @@ func (srv *Server) HandleSignin() gin.HandlerFunc {
 
 		now := time.Now()
 		sessionValue := lib.MakeRandomString(32)
-		session, sessionKey := repository.NewSession(user.UID, sessionValue, now, now.Add(sessionExpiresIn))
+		session, sessionKey := repository.NewSession(repoUser.UID, sessionValue, now, now.Add(sessionExpiresIn))
 		if _, err := srv.dc.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 			if _, err := tx.Put(sessionKey, session); err != nil {
 				return err
@@ -76,6 +77,13 @@ func (srv *Server) HandleSignin() gin.HandlerFunc {
 		}
 		http.SetCookie(c.Writer, sessionCookie)
 
+		user := &models.User{
+			UID:  repoUser.UID,
+			Gpa:  repoUser.Gpa,
+			Lab1: repoUser.Lab1,
+			Lab2: repoUser.Lab2,
+			Lab3: repoUser.Lab3,
+		}
 		c.JSON(http.StatusOK, &user)
 	}
 }
