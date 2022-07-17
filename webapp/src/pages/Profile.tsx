@@ -2,7 +2,7 @@ import { Alert, Box, Button, Typography } from '@mui/material';
 import React, { useContext, useState } from 'react';
 import { ApiUser, UserLab } from '../apis/models/user';
 import { updateUserLab } from '../apis/user';
-import { UserContext } from '../App';
+import { UserContext, UserDispatchContext } from '../App';
 import LabSurvey from '../components/forms/LabSurvey';
 import { DefaultLayout } from '../components/layout';
 import { sleep } from '../lib/util';
@@ -34,6 +34,7 @@ function Profile(): JSX.Element {
     lab2: user.lab2 ?? '',
     lab3: user.lab3 ?? '',
   });
+  const setCurrentUser = useContext(UserDispatchContext);
 
   return (
     <DefaultLayout>
@@ -67,7 +68,9 @@ function Profile(): JSX.Element {
               lab3: labSurvey.lab3,
             };
             try {
-              await updateUserLab(userLab);
+              const user = await updateUserLab(userLab);
+              console.log(user);
+              setCurrentUser(user);
               setSuccessMessage('更新に成功しました');
             } catch (e) {
               if (e instanceof Error) {

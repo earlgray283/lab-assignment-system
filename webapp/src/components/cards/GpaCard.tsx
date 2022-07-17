@@ -60,7 +60,6 @@ function GpaCard(props: { gpa: number }): JSX.Element {
   useEffect(() => {
     const list = new Array<number>(0, 0, 0, 0, 0, 0, 0, 0);
     for (const gpa of gpas) {
-      console.log(gpa);
       if (gpa <= 0.5) list[0]++;
       else if (gpa <= 1.0) list[1]++;
       else if (gpa <= 1.5) list[2]++;
@@ -70,7 +69,6 @@ function GpaCard(props: { gpa: number }): JSX.Element {
       else if (gpa <= 3.5) list[6]++;
       else list[7]++;
     }
-    console.log(list);
     setGpaClasses([...list]);
   }, [gpas]);
   const data = {

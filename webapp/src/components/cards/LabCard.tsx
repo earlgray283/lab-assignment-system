@@ -1,8 +1,7 @@
 import { Box, Divider, Grid, Stack, Typography, Tooltip } from '@mui/material';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { fetchLabs } from '../../apis/labs';
 import { LabList } from '../../apis/models/lab';
-import { sleep } from '../../lib/util';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Legend } from 'chart.js';
 import CheckIcon from '@mui/icons-material/Check';
@@ -11,18 +10,19 @@ import { DisplayGpa } from '../util';
 
 ChartJS.register(ArcElement, Legend);
 
-let labList: LabList | undefined;
-function useLabList(labIds: string[]): LabList {
-  if (labList === undefined) {
-    throw fetchLabs(labIds, ['grade'])
-      .then((data) => (labList = data))
-      .catch(() => sleep(2000));
-  }
-  return labList;
-}
-
 function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
-  const labList = useLabList(props.labIds);
+  const [labList, setLabList] = useState<LabList | undefined>(undefined);
+  useEffect(() => {
+    (async () => {
+      const labList2 = await fetchLabs(props.labIds, ['grade']);
+      setLabList(labList2);
+    })();
+  }, []);
+
+  if (!labList) {
+    return <div>loading</div>;
+  }
+
   return (
     <Box padding='5px'>
       <Grid
