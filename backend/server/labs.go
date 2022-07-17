@@ -63,19 +63,19 @@ func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
 
 		labs := make([]*models.Lab, len(repoLabs))
 		for i, repoLab := range repoLabs {
-			p := srv.labsChecker.GetLabCount(repoLab.ID)
+			labGpa := srv.labsChecker.GetLabGpa(repoLab.ID)
 			labs[i] = &models.Lab{
 				ID:           repoLab.ID,
 				Name:         repoLab.Name,
 				Capacity:     repoLab.Capacity,
-				FirstChoice:  p.First,
-				SecondChoice: p.Second,
-				ThirdChoice:  p.Third,
+				FirstChoice:  len(labGpa.Gpas1),
+				SecondChoice: len(labGpa.Gpas2),
+				ThirdChoice:  len(labGpa.Gpas3),
 			}
 			for _, optField := range optFields {
 				switch optField {
 				case "grade":
-					labs[i].Grades = srv.labGpa.Map[repoLab.ID]
+					labs[i].Grades = labGpa
 				}
 			}
 		}

@@ -1,7 +1,7 @@
 package server
 
 import (
-	"lab-assignment-system-backend/repository"
+	"context"
 	"lab-assignment-system-backend/server/worker"
 	"log"
 	"time"
@@ -16,7 +16,6 @@ type Server struct {
 	logger      *log.Logger
 	dc          *datastore.Client
 	labsChecker *worker.LabsChecker
-	labGpa      *repository.LabGpa
 }
 
 func NewCorsConfig(allowOrigins []string) *cors.Config {
@@ -32,12 +31,12 @@ func New(dc *datastore.Client, allowOrigins []string) (*Server, error) {
 	r.Use(cors.New(*corsConfig))
 	logger := log.Default()
 	gin.DefaultWriter = logger.Writer()
-	labsWorker := worker.NewLabsChecker(dc, time.Hour)
-	labGpa, err := repository.CalculateLabGpa(dc)
+	labsWorker, err := worker.NewLabsChecker(context.Background(), dc, time.Hour)
 	if err != nil {
 		return nil, err
 	}
-	srv := &Server{r, logger, dc, labsWorker, labGpa}
+
+	srv := &Server{r, logger, dc, labsWorker}
 
 	srv.AuthRouter()
 	srv.LabsRouter()

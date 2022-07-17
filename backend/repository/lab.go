@@ -51,12 +51,7 @@ func FetchAllLabs(ctx context.Context, c *datastore.Client, labIds []string) ([]
 	return repoLabs, true, nil
 }
 
-type LabGpa struct {
-	Map  map[string]*models.LabGpa
-	Gpas []float64
-}
-
-func CalculateLabGpa(c *datastore.Client) (*LabGpa, error) {
+func CalculateLabGpa(c *datastore.Client) (map[string]*models.LabGpa, error) {
 	ctx := context.Background()
 	m := map[string]*models.LabGpa{}
 	users := make([]*User, 0)
@@ -65,9 +60,7 @@ func CalculateLabGpa(c *datastore.Client) (*LabGpa, error) {
 		return nil, err
 	}
 
-	gpas := make([]float64, 0, len(users))
 	for _, user := range users {
-		gpas = append(gpas, user.Gpa)
 		if user.Lab1 == nil || user.Lab2 == nil || user.Lab3 == nil {
 			continue
 		}
@@ -94,5 +87,5 @@ func CalculateLabGpa(c *datastore.Client) (*LabGpa, error) {
 		slices.SortFunc(labGpa.Gpas3, cmpFunc)
 	}
 
-	return &LabGpa{m, gpas}, nil
+	return m, nil
 }

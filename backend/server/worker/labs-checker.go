@@ -2,8 +2,8 @@ package worker
 
 import (
 	"context"
-	"lab-assignment-system-backend/lib"
 	"lab-assignment-system-backend/repository"
+	"lab-assignment-system-backend/server/models"
 	"log"
 	"sync"
 	"time"
@@ -11,59 +11,50 @@ import (
 	"cloud.google.com/go/datastore"
 )
 
-type LabCountMap struct {
-	mp map[string]*Priority
+type LabMap struct {
+	mp map[string]*models.LabGpa
 	sync.Mutex
 }
 
-func (l *LabCountMap) GetOrInsert(labId string, alt *Priority) *Priority {
-	if l.mp[labId] == nil {
-		l.mp[labId] = alt
-	}
-	return l.mp[labId]
-}
-
-type Priority struct {
-	First, Second, Third int
-}
-
 type LabsChecker struct {
-	c           *datastore.Client
-	labCountMap *LabCountMap
-	interval    time.Duration
+	c        *datastore.Client
+	labMap   *LabMap
+	interval time.Duration
 }
 
-func NewLabsChecker(c *datastore.Client, interval time.Duration) *LabsChecker {
-	labCountMap := &LabCountMap{}
-	return &LabsChecker{
-		c:           c,
-		interval:    interval,
-		labCountMap: labCountMap,
+func NewLabsChecker(ctx context.Context, c *datastore.Client, interval time.Duration) (*LabsChecker, error) {
+	keys, err := c.GetAll(ctx, datastore.NewQuery(repository.KindLab).KeysOnly(), nil)
+	if err != nil {
+		return nil, err
 	}
-}
-
-func (l *LabsChecker) GetLabCount(labId string) *Priority {
-	l.labCountMap.Lock()
-	defer l.labCountMap.Unlock()
-	v := l.labCountMap.mp[labId]
-	if v == nil {
-		v = &Priority{}
+	labGpaMp, err := repository.CalculateLabGpa(c)
+	if err != nil {
+		return nil, err
 	}
-	return v
-}
-
-func (l *LabsChecker) GetLabCountMap() map[string]*Priority {
-	l.labCountMap.Lock()
-	defer l.labCountMap.Unlock()
-	mp := map[string]*Priority{}
-	for k, v := range l.labCountMap.mp {
-		mp[k] = &Priority{
-			First:  v.First,
-			Second: v.Second,
-			Third:  v.Third,
+	mp := map[string]*models.LabGpa{}
+	for _, key := range keys {
+		if labGpa, ok := labGpaMp[key.Name]; ok {
+			mp[key.Name] = labGpa
+		} else {
+			mp[key.Name] = &models.LabGpa{
+				Gpas1:     make([]float64, 0),
+				Gpas2:     make([]float64, 0),
+				Gpas3:     make([]float64, 0),
+				UpdatedAt: time.Now(),
+			}
 		}
 	}
-	return mp
+	return &LabsChecker{
+		c:        c,
+		interval: interval,
+		labMap:   &LabMap{mp: mp},
+	}, nil
+}
+
+func (l *LabsChecker) GetLabGpa(labId string) *models.LabGpa {
+	l.labMap.Lock()
+	defer l.labMap.Unlock()
+	return l.labMap.mp[labId]
 }
 
 func (l *LabsChecker) SingleRun() error {
@@ -73,20 +64,15 @@ func (l *LabsChecker) SingleRun() error {
 	if _, err := l.c.GetAll(ctx, datastore.NewQuery(repository.KindUser), &users); err != nil {
 		return err
 	}
-
-	l.labCountMap.Lock()
-	defer l.labCountMap.Unlock()
-
-	labCountMap := lib.Map[string, *Priority]{}
-	for _, user := range users {
-		if user.Lab1 == nil || user.Lab2 == nil || user.Lab3 == nil {
-			continue
-		}
-		labCountMap.GetOrInsert(*user.Lab1, &Priority{}).First++
-		labCountMap.GetOrInsert(*user.Lab2, &Priority{}).Second++
-		labCountMap.GetOrInsert(*user.Lab3, &Priority{}).Third++
+	l.labMap.Lock()
+	defer l.labMap.Unlock()
+	labMap, err := repository.CalculateLabGpa(l.c)
+	if err != nil {
+		return err
 	}
-	l.labCountMap.mp = labCountMap
+	for labId, labGpa := range labMap {
+		l.labMap.mp[labId] = labGpa
+	}
 
 	return nil
 }
