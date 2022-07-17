@@ -58,12 +58,8 @@ func (l *LabsChecker) GetLabGpa(labId string) *models.LabGpa {
 }
 
 func (l *LabsChecker) SingleRun() error {
-	ctx := context.Background()
 	log.Println("Running Labs Checker...")
-	var users []*repository.User
-	if _, err := l.c.GetAll(ctx, datastore.NewQuery(repository.KindUser), &users); err != nil {
-		return err
-	}
+
 	l.labMap.Lock()
 	defer l.labMap.Unlock()
 	labMap, err := repository.CalculateLabGpa(l.c)
