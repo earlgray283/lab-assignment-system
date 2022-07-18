@@ -65,13 +65,13 @@ func CalculateLabGpa(c *datastore.Client) (map[string]*models.LabGpa, error) {
 			continue
 		}
 		if _, ok := m[*user.Lab1]; !ok {
-			m[*user.Lab1] = &models.LabGpa{}
+			m[*user.Lab1] = models.NewLabGpa()
 		}
 		if _, ok := m[*user.Lab2]; !ok {
-			m[*user.Lab2] = &models.LabGpa{}
+			m[*user.Lab2] = models.NewLabGpa()
 		}
 		if _, ok := m[*user.Lab3]; !ok {
-			m[*user.Lab3] = &models.LabGpa{}
+			m[*user.Lab3] = models.NewLabGpa()
 		}
 		m[*user.Lab1].Gpas1 = append(m[*user.Lab1].Gpas1, user.Gpa)
 		m[*user.Lab2].Gpas2 = append(m[*user.Lab2].Gpas2, user.Gpa)

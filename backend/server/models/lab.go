@@ -17,8 +17,16 @@ type Lab struct {
 }
 
 type LabGpa struct {
-	Gpas1     []float64 `json:"gpas1,omitempty"`
-	Gpas2     []float64 `json:"gpas2,omitempty"`
-	Gpas3     []float64 `json:"gpas3,omitempty"`
-	UpdatedAt time.Time `json:"updatedAt,omitempty"`
+	Gpas1     []float64 `json:"gpas1"`
+	Gpas2     []float64 `json:"gpas2"`
+	Gpas3     []float64 `json:"gpas3"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func NewLabGpa() *LabGpa {
+	return &LabGpa{
+		Gpas1: make([]float64, 0),
+		Gpas2: make([]float64, 0),
+		Gpas3: make([]float64, 0),
+	}
 }
