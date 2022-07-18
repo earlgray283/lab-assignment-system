@@ -10,6 +10,7 @@ import React, {
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Appbar } from './components/Appbar';
 import { fetchUser } from './apis/user';
+import LabListPage from './pages/LabList';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -73,6 +74,8 @@ function App(): JSX.Element {
                       <Route path='profile'>
                         <Route index element={<Profile />} />
                       </Route>
+
+                      <Route path='labs' element={<LabListPage />} />
                     </Route>
                   </Routes>
                 </Box>

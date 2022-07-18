@@ -47,15 +47,15 @@ export const DisplayGpa = (props: { gpa: number }): JSX.Element => {
               : props.gpa < 2.0
               ? 'gray'
               : props.gpa < 2.5
-              ? 'brown'
+              ? '#804000'
               : props.gpa < 2.8
               ? 'green'
               : props.gpa < 3.0
-              ? 'cyan'
+              ? '#00C0C0'
               : props.gpa < 3.1
               ? 'blue'
               : props.gpa < 3.2
-              ? 'yellow'
+              ? '#C0C000'
               : props.gpa < 3.3
               ? 'orange'
               : props.gpa < 3.4

@@ -39,23 +39,18 @@ function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
             return <div />;
           }
           if (i == 0) {
-            rank = lab.grades.gpas1.indexOf(props.gpa) + 1;
+            rank = lab.grades.gpas1.indexOf(props.gpa) + 1 ?? -1;
           } else if (i == 1) {
             rank = lab.grades.gpas2.indexOf(props.gpa) + 1;
           } else {
             rank = lab.grades.gpas3.indexOf(props.gpa) + 1;
           }
-          const gpas = Array.prototype.concat(
-            lab.grades.gpas1 ?? [],
-            lab.grades.gpas2 ?? [],
-            lab.grades.gpas3 ?? []
-          );
-          gpas.sort((a, b) => b - a);
-          const gpaAveg = gpas.reduce((prev, cur) => prev + cur) / gpas.length;
-          const labMag =
-            ((lab.firstChoice + lab.secondChoice + lab.thirdChoice) /
-              lab.capacity) *
-            100;
+          const gpaAveg =
+            lab.grades.gpas1.length != 0
+              ? lab.grades.gpas1.reduce((prev, cur) => prev + cur) /
+                lab.grades.gpas1.length
+              : -1;
+          const labMag = (lab.firstChoice / lab.capacity) * 100;
           return (
             <Box
               key={lab.id}
@@ -84,6 +79,7 @@ function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
                 <Stack marginTop='5px'>
                   <Box>競争率: {<span>{labMag}</span>}%</Box>
                   <Box>定員: {lab.capacity}人</Box>
+                  <Box>志望者数: {lab.firstChoice}人</Box>
                   <Box>GPA(最小は上位{lab.capacity}名中)</Box>
                   <Box marginLeft='10px'>
                     {' '}
@@ -91,24 +87,19 @@ function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
                   </Box>
                   <Box marginLeft='10px'>
                     {' '}
-                    - 最大: <DisplayGpa gpa={gpas[0]} />
+                    - 最大: <DisplayGpa gpa={lab.grades.gpas1.at(0) ?? -1} />
                   </Box>
                   <Box marginLeft='10px'>
                     {' '}
                     - 最小:{' '}
                     <DisplayGpa
                       gpa={
-                        gpas.at(lab.capacity - 1) ?? gpas.at(gpas.length - 1)
+                        lab.grades.gpas1.at(lab.capacity - 1) ??
+                        lab.grades.gpas1.at(lab.grades.gpas1.length - 1) ??
+                        -1
                       }
                     />
                   </Box>
-                  <Box>
-                    志望者数:{' '}
-                    {lab.firstChoice + lab.secondChoice + lab.thirdChoice}人
-                  </Box>
-                  <Box marginLeft='10px'> - 第1希望: {lab.firstChoice}人</Box>
-                  <Box marginLeft='10px'> - 第2希望: {lab.secondChoice}人</Box>
-                  <Box marginLeft='10px'> - 第3希望: {lab.thirdChoice}人</Box>
                 </Stack>
               </Box>
               <Box display='flex' flexDirection='column' alignItems='center'>
