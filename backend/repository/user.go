@@ -7,13 +7,14 @@ import (
 )
 
 type User struct {
-	UID       string
-	Gpa       float64
-	Lab1      *string
-	Lab2      *string
-	Lab3      *string
-	CreatedAt time.Time
-	UpdatedAt *time.Time
+	UID          string
+	Gpa          float64
+	Lab1         *string
+	Lab2         *string
+	Lab3         *string
+	ConfirmedLab *string
+	CreatedAt    time.Time
+	UpdatedAt    *time.Time
 }
 
 const KindUser = "user"
