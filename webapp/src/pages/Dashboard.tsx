@@ -36,7 +36,7 @@ function Dashboard(): JSX.Element {
     return <div />; // /auth/signin にリダイレクトされることが保証される
   }
   if (labIds === undefined) {
-    return <div>loading...</div>;
+    return <div />;
   }
 
   return (

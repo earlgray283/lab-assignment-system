@@ -29,7 +29,7 @@ function LabCard(props: { labIds?: string[]; gpa: number }): JSX.Element {
   }, []);
 
   if (!labList || user === undefined) {
-    return <div>loading</div>;
+    return <div />;
   }
   if (!user) {
     return <div>unauthorized</div>;
