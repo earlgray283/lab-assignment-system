@@ -1,7 +1,7 @@
 import { Box, Divider, Grid, Stack, Typography, Tooltip } from '@mui/material';
 import React, { useContext, useEffect, useState } from 'react';
 import { fetchLabs } from '../../apis/labs';
-import { LabList } from '../../apis/models/lab';
+import { Lab, LabList } from '../../apis/models/lab';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Legend } from 'chart.js';
 import CheckIcon from '@mui/icons-material/Check';
@@ -78,7 +78,7 @@ function LabCard(props: { labIds?: string[]; gpa: number }): JSX.Element {
           if (
             i == 0 &&
             lab.grades.gpas1.length >= lab.capacity &&
-            mingpa >= user.gpa
+            mingpa > user.gpa
           ) {
             const newNotifications = [...notifications];
             newNotifications.push({
@@ -106,7 +106,7 @@ function LabCard(props: { labIds?: string[]; gpa: number }): JSX.Element {
                 {lab.name}{' '}
                 <Tooltip
                   title={
-                    lab.grades.gpas1.length < lab.capacity || mingpa < user.gpa
+                    lab.grades.gpas1.length < lab.capacity || mingpa <= user.gpa
                       ? '配属可能です'
                       : '配属ができません'
                   }
