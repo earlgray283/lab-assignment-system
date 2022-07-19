@@ -3,7 +3,7 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import { fetchLabs } from '../apis/labs';
 import { LabList, Lab } from '../apis/models/lab';
-import { DefaultLayout, FullLayout } from '../components/layout';
+import { DefaultLayout } from '../components/layout';
 import { DisplayGpa } from '../components/util';
 
 const columns: GridColDef<Lab>[] = [
@@ -106,6 +106,7 @@ function LabListPage(): JSX.Element {
   return (
     <DefaultLayout>
       <Typography variant='h4'>研究室一覧</Typography>
+
       <DataGrid
         rows={labList.labs}
         columns={columns}

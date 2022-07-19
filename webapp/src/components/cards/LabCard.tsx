@@ -1,5 +1,5 @@
 import { Box, Divider, Grid, Stack, Typography, Tooltip } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { fetchLabs } from '../../apis/labs';
 import { LabList } from '../../apis/models/lab';
 import { Doughnut } from 'react-chartjs-2';
@@ -7,11 +7,20 @@ import { Chart as ChartJS, ArcElement, Legend } from 'chart.js';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { DisplayGpa } from '../util';
+import { UserContext } from '../../App';
+import {
+  NotificationsContext,
+  NotificationsDispatchContext,
+} from '../../pages/Dashboard';
+import { Link } from 'react-router-dom';
 
 ChartJS.register(ArcElement, Legend);
 
-function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
+function LabCard(props: { labIds?: string[]; gpa: number }): JSX.Element {
   const [labList, setLabList] = useState<LabList | undefined>(undefined);
+  const notifications = useContext(NotificationsContext);
+  const setNotifications = useContext(NotificationsDispatchContext);
+  const user = useContext(UserContext);
   useEffect(() => {
     (async () => {
       const labList2 = await fetchLabs(props.labIds, ['grade']);
@@ -19,8 +28,26 @@ function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
     })();
   }, []);
 
-  if (!labList) {
+  if (!labList || user === undefined) {
     return <div>loading</div>;
+  }
+  if (!user) {
+    return <div>unauthorized</div>;
+  }
+  if (!user.lab1) {
+    console.log('check');
+    const newNotifications = [...notifications];
+    newNotifications.push({
+      severity: 'error',
+      message: (
+        <div>
+          研究室アンケートに回答されていません。
+          <Link to='/profile'>研究室アンケートページ</Link>
+          から回答を行って下さい。
+        </div>
+      ),
+    });
+    setNotifications([...newNotifications]);
   }
 
   return (
@@ -37,13 +64,31 @@ function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
             // unreachable
             return <div />;
           }
-          const rank = lab.grades.gpas1.indexOf(props.gpa);
+          const mingpa =
+            lab.grades.gpas1.at(lab.capacity - 1) ??
+            lab.grades.gpas1.at(lab.grades.gpas1.length - 1) ??
+            -1;
           const gpaAveg =
             lab.grades.gpas1.length != 0
               ? lab.grades.gpas1.reduce((prev, cur) => prev + cur) /
                 lab.grades.gpas1.length
               : -1;
           const labMag = (lab.firstChoice / lab.capacity) * 100;
+
+          if (lab.grades.gpas1.length >= lab.capacity && mingpa >= user.gpa) {
+            const newNotifications = [...notifications];
+            newNotifications.push({
+              severity: 'error',
+              message: (
+                <div>
+                  第1希望の研究室({lab.name}
+                  )への配属ができません。第一希望の研究室を変更してください。
+                </div>
+              ),
+            });
+            setNotifications([...newNotifications]);
+          }
+
           return (
             <Box
               key={lab.id}
@@ -57,10 +102,13 @@ function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
                 {lab.name}{' '}
                 <Tooltip
                   title={
-                    rank <= lab.capacity ? '配属可能です' : '配属ができません'
+                    lab.grades.gpas1.length < lab.capacity || mingpa < user.gpa
+                      ? '配属可能です'
+                      : '配属ができません'
                   }
                 >
-                  {rank <= lab.capacity ? (
+                  {lab.grades.gpas1.length < lab.capacity ||
+                  mingpa < user.gpa ? (
                     <CheckIcon fontSize='small' sx={{ color: 'green' }} />
                   ) : (
                     <CloseIcon fontSize='small' sx={{ color: 'red' }} />
@@ -84,14 +132,7 @@ function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
                   </Box>
                   <Box marginLeft='10px'>
                     {' '}
-                    - 最小:{' '}
-                    <DisplayGpa
-                      gpa={
-                        lab.grades.gpas1.at(lab.capacity - 1) ??
-                        lab.grades.gpas1.at(lab.grades.gpas1.length - 1) ??
-                        -1
-                      }
-                    />
+                    - 最小: <DisplayGpa gpa={mingpa} />
                   </Box>
                 </Stack>
               </Box>

@@ -1,15 +1,22 @@
 import { Alert, Stack } from '@mui/material';
-import { useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { UserContext } from '../App';
 import GpaCard from '../components/cards/GpaCard';
 import { FullLayout } from '../components/layout';
+import { Notification } from '../components/Notification';
 import LabCard from '../components/cards/LabCard';
+
+export const NotificationsContext = createContext<Notification[]>([]);
+export const NotificationsDispatchContext = createContext<
+  React.Dispatch<React.SetStateAction<Notification[]>>
+>(() => undefined);
 
 function Dashboard(): JSX.Element {
   const user = useContext(UserContext);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [labIds, setLabIds] = useState<string[] | null | undefined>(undefined);
   const navigate = useNavigate();
   useEffect(() => {
@@ -28,22 +35,24 @@ function Dashboard(): JSX.Element {
   if (!user) {
     return <div />; // /auth/signin にリダイレクトされることが保証される
   }
-
-  console.log(labIds);
+  if (labIds === undefined) {
+    return <div>loading...</div>;
+  }
 
   return (
     <FullLayout>
-      <Stack spacing={2}>
-        {(!user.lab1 || !user.lab2 || !user.lab3) && (
-          <Alert severity='error'>
-            研究室アンケートに回答されていません。
-            <Link to='/profile'>研究室アンケートページ</Link>
-            から回答を行って下さい。
-          </Alert>
-        )}
-        {user.gpa && <GpaCard gpa={user.gpa} />}
-        {labIds && <LabCard labIds={[...labIds]} gpa={user.gpa} />}
-      </Stack>
+      <NotificationsDispatchContext.Provider value={setNotifications}>
+        <Stack spacing={2}>
+          {notifications.map((notification, i) => (
+            <Alert key={i} severity={notification.severity}>
+              {notification.message}
+            </Alert>
+          ))}
+
+          {user.gpa && <GpaCard gpa={user.gpa} />}
+          {<LabCard labIds={labIds ?? undefined} gpa={user.gpa} />}
+        </Stack>
+      </NotificationsDispatchContext.Provider>
     </FullLayout>
   );
 }
