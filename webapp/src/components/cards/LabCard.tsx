@@ -13,6 +13,7 @@ import {
   NotificationsDispatchContext,
 } from '../../pages/Dashboard';
 import { Link } from 'react-router-dom';
+import { cmpLessThan } from '../../lib/util';
 
 ChartJS.register(ArcElement, Legend);
 
@@ -106,13 +107,14 @@ function LabCard(props: { labIds?: string[]; gpa: number }): JSX.Element {
                 {lab.name}{' '}
                 <Tooltip
                   title={
-                    lab.grades.gpas1.length < lab.capacity || mingpa <= user.gpa
+                    lab.grades.gpas1.length < lab.capacity ||
+                    cmpLessThan(mingpa, user.gpa)
                       ? '配属可能です'
                       : '配属ができません'
                   }
                 >
                   {lab.grades.gpas1.length < lab.capacity ||
-                  mingpa < user.gpa ? (
+                  cmpLessThan(mingpa, user.gpa) ? (
                     <CheckIcon fontSize='small' sx={{ color: 'green' }} />
                   ) : (
                     <CloseIcon fontSize='small' sx={{ color: 'red' }} />
