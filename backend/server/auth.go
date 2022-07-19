@@ -30,7 +30,7 @@ type SigninForm struct {
 	Password string `json:"password,omitempty"`
 }
 
-const sessionExpiresIn = time.Hour * 24 * 7
+const sessionExpiresIn = 604800
 
 func (srv *Server) AuthRouter() {
 	r := srv.r.Group("/auth")
@@ -106,7 +106,7 @@ func makeSessionCookie(ctx context.Context, session string) (*http.Cookie, error
 	return &http.Cookie{
 		Name:     "session",
 		Value:    session,
-		MaxAge:   int(sessionExpiresIn),
+		MaxAge:   sessionExpiresIn,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
