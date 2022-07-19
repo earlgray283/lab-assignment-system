@@ -1,11 +1,13 @@
 package server
 
 import (
+	"encoding/csv"
 	"fmt"
 	"lab-assignment-system-backend/lib"
 	"lab-assignment-system-backend/repository"
 	"lab-assignment-system-backend/server/models"
 	"net/http"
+	"sort"
 	"strings"
 
 	"cloud.google.com/go/datastore"
@@ -17,6 +19,7 @@ func (srv *Server) LabsRouter() {
 	{
 		r.GET("", srv.HandleGetAllLabs())
 	}
+	srv.r.GET("/labs/result", srv.HandleGetLabResult())
 }
 
 func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
@@ -81,5 +84,48 @@ func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, &models.LabList{Labs: labs})
+	}
+}
+
+func (srv *Server) HandleGetLabResult() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var users []*repository.User
+		if _, err := srv.dc.GetAll(c.Request.Context(), datastore.NewQuery(repository.KindUser), &users); err != nil {
+			srv.logger.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		var labs []*repository.Lab
+		if _, err := srv.dc.GetAll(c.Request.Context(), datastore.NewQuery(repository.KindLab), &labs); err != nil {
+			srv.logger.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+		sort.Slice(users, func(i, j int) bool {
+			return users[i].Gpa > users[j].Gpa
+		})
+		labMap := lib.NewMapFromSlice(lib.MapSlice(labs, func(lab *repository.Lab) string { return lab.ID }), labs)
+		userLabMap := map[string]string{}
+		labCountMap := map[string]int{}
+		for _, user := range users {
+			if user.Lab1 == nil {
+				userLabMap[user.UID] = "undefined"
+				continue
+			}
+			if labMap[*user.Lab1].Capacity == labCountMap[*user.Lab1] {
+				userLabMap[user.UID] = "undefined"
+				continue
+			}
+			labCountMap[*user.Lab1]++
+			userLabMap[user.UID] = *user.Lab1
+		}
+
+		c.Writer.Header().Set("Content-Type", "text/csv")
+		csvw := csv.NewWriter(c.Writer)
+		for uid, lab := range userLabMap {
+			csvw.Write([]string{uid, lab})
+		}
+		csvw.Flush()
 	}
 }
