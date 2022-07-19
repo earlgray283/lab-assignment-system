@@ -32,19 +32,12 @@ function LabCard(props: { labIds: string[]; gpa: number }): JSX.Element {
         justifyContent='center'
         alignItems='center'
       >
-        {labList.labs.map((lab, i) => {
-          let rank = -1;
+        {labList.labs.map((lab) => {
           if (!lab.grades) {
             // unreachable
             return <div />;
           }
-          if (i == 0) {
-            rank = lab.grades.gpas1.indexOf(props.gpa) + 1 ?? -1;
-          } else if (i == 1) {
-            rank = lab.grades.gpas2.indexOf(props.gpa) + 1;
-          } else {
-            rank = lab.grades.gpas3.indexOf(props.gpa) + 1;
-          }
+          const rank = lab.grades.gpas1.indexOf(props.gpa);
           const gpaAveg =
             lab.grades.gpas1.length != 0
               ? lab.grades.gpas1.reduce((prev, cur) => prev + cur) /
