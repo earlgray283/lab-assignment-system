@@ -59,7 +59,7 @@ function LabCard(props: { labIds?: string[]; gpa: number }): JSX.Element {
         justifyContent='center'
         alignItems='center'
       >
-        {labList.labs.map((lab) => {
+        {labList.labs.map((lab, i) => {
           if (!lab.grades) {
             // unreachable
             return <div />;
@@ -75,7 +75,11 @@ function LabCard(props: { labIds?: string[]; gpa: number }): JSX.Element {
               : -1;
           const labMag = (lab.firstChoice / lab.capacity) * 100;
 
-          if (lab.grades.gpas1.length >= lab.capacity && mingpa >= user.gpa) {
+          if (
+            i == 0 &&
+            lab.grades.gpas1.length >= lab.capacity &&
+            mingpa >= user.gpa
+          ) {
             const newNotifications = [...notifications];
             newNotifications.push({
               severity: 'error',
