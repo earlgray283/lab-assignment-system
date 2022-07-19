@@ -10,7 +10,7 @@ import React, {
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Appbar } from './components/Appbar';
 import { fetchUser } from './apis/user';
-import LabListPage from './pages/LabList';
+const LabListPage = lazy(() => import('./pages/LabList'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Profile = lazy(() => import('./pages/Profile'));
