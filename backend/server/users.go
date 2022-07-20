@@ -30,6 +30,17 @@ func (srv *Server) HandleUpdateLabs() gin.HandlerFunc {
 			return
 		}
 
+		labs, _, err := repository.FetchAllLabs(c.Request.Context(), srv.dc, []string{userLab.Lab1})
+		if err != nil {
+			srv.logger.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		if labs[0].Capacity == labs[0].ConfirmedNumber {
+			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "the lab was locked"))
+			return
+		}
+
 		user.Lab1 = &userLab.Lab1
 		user.Lab2 = &userLab.Lab2
 		user.Lab3 = &userLab.Lab3

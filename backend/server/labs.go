@@ -19,7 +19,7 @@ func (srv *Server) LabsRouter() {
 	{
 		r.GET("", srv.HandleGetAllLabs())
 	}
-	srv.r.GET("/labs/result", srv.HandleGetLabResult())
+	srv.r.POST("/labs/confirm", srv.HandlePostConfirmLabs())
 }
 
 func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
@@ -87,7 +87,7 @@ func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
 	}
 }
 
-func (srv *Server) HandleGetLabResult() gin.HandlerFunc {
+func (srv *Server) HandlePostConfirmLabs() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var users []*repository.User
 		if _, err := srv.dc.GetAll(c.Request.Context(), datastore.NewQuery(repository.KindUser), &users); err != nil {
@@ -102,29 +102,50 @@ func (srv *Server) HandleGetLabResult() gin.HandlerFunc {
 			return
 		}
 
-		sort.Slice(users, func(i, j int) bool {
-			return users[i].Gpa > users[j].Gpa
-		})
+		sort.Slice(users, func(i, j int) bool { return users[i].Gpa > users[j].Gpa })
+
+		userKeys := make([]*datastore.Key, 0, len(users))
 		labMap := lib.NewMapFromSlice(lib.MapSlice(labs, func(lab *repository.Lab) string { return lab.ID }), labs)
-		userLabMap := map[string]string{}
-		labCountMap := map[string]int{}
 		for _, user := range users {
 			if user.Lab1 == nil {
-				userLabMap[user.UID] = "undefined"
 				continue
 			}
-			if labMap[*user.Lab1].Capacity == labCountMap[*user.Lab1] {
-				userLabMap[user.UID] = "undefined"
+			if labMap[*user.Lab1].Capacity == labMap[*user.Lab1].ConfirmedNumber {
 				continue
 			}
-			labCountMap[*user.Lab1]++
-			userLabMap[user.UID] = *user.Lab1
+			user.ConfirmedLab = user.Lab1
+			labMap[*user.Lab1].ConfirmedNumber++
+			userKeys = append(userKeys, repository.NewUserKey(user.UID))
+		}
+		newLabKeys := make([]*datastore.Key, 0, len(labs))
+		newLabs := make([]*repository.Lab, 0, len(labs))
+		for _, lab := range labMap {
+			newLabKeys = append(newLabKeys, repository.NewLabKey(lab.ID))
+			newLabs = append(newLabs, lab)
+		}
+
+		if _, err := srv.dc.RunInTransaction(c.Request.Context(), func(tx *datastore.Transaction) error {
+			if _, err := tx.PutMulti(userKeys, users); err != nil {
+				return err
+			}
+			if _, err := tx.PutMulti(newLabKeys, newLabs); err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
+			srv.logger.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
 		}
 
 		c.Writer.Header().Set("Content-Type", "text/csv")
 		csvw := csv.NewWriter(c.Writer)
-		for uid, lab := range userLabMap {
-			csvw.Write([]string{uid, lab})
+		for _, user := range users {
+			confirmedLab := "undefined"
+			if user.ConfirmedLab != nil {
+				confirmedLab = *user.ConfirmedLab
+			}
+			csvw.Write([]string{user.UID, confirmedLab})
 		}
 		csvw.Flush()
 	}
