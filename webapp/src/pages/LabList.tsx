@@ -5,6 +5,7 @@ import { fetchLabs } from '../apis/labs';
 import { LabList, Lab } from '../apis/models/lab';
 import { DefaultLayout } from '../components/layout';
 import { DisplayGpa } from '../components/util';
+import CheckIcon from '@mui/icons-material/Check';
 
 const columns: GridColDef<Lab>[] = [
   {
@@ -87,6 +88,15 @@ const columns: GridColDef<Lab>[] = [
         />
       );
     },
+  },
+  {
+    field: 'confirmed',
+    headerName: '確定',
+    width: 80,
+    align: 'center',
+    headerAlign: 'center',
+    renderCell: (params) =>
+      params.row.capacity == params.row.confirmedNumber && <CheckIcon />,
   },
 ];
 

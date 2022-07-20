@@ -9,6 +9,7 @@ export interface Lab {
   firstChoice: number;
   secondChoice: number;
   thirdChoice: number;
+  confirmedNumber: number;
   grades?: Labgpa;
 }
 

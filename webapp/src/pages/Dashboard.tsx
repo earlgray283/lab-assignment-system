@@ -43,6 +43,11 @@ function Dashboard(): JSX.Element {
     <FullLayout>
       <NotificationsDispatchContext.Provider value={setNotifications}>
         <Stack spacing={2}>
+          {user.confirmedLab && (
+            <Alert severity='success'>
+              おめでとうございます。あなたの配属先が確定しました。
+            </Alert>
+          )}
           {notifications.map((notification, i) => (
             <Alert key={i} severity={notification.severity}>
               {notification.message}

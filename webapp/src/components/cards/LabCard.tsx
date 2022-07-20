@@ -17,6 +17,35 @@ import { cmpLessThan } from '../../lib/util';
 
 ChartJS.register(ArcElement, Legend);
 
+function calcMinGpa(lab: Lab): number {
+  if (!lab.grades) {
+    return -1;
+  }
+  return (
+    lab.grades.gpas1.at(lab.capacity - 1) ??
+    lab.grades.gpas1.at(lab.grades.gpas1.length - 1) ??
+    -1
+  );
+}
+
+function calcLabGpaAveg(lab: Lab): number {
+  if (!lab.grades) {
+    return -1;
+  }
+  return lab.grades.gpas1.length != 0
+    ? lab.grades.gpas1.reduce((prev, cur) => prev + cur) /
+        lab.grades.gpas1.length
+    : -1;
+}
+
+function isAssignable(lab: Lab, userGpa: number): boolean {
+  if (!lab.grades) {
+    return true;
+  }
+  const mingpa = calcMinGpa(lab);
+  return lab.grades.gpas1.length < lab.capacity || cmpLessThan(mingpa, userGpa);
+}
+
 function LabCard(props: { labIds?: string[]; gpa: number }): JSX.Element {
   const [labList, setLabList] = useState<LabList | undefined>(undefined);
   const notifications = useContext(NotificationsContext);
@@ -65,22 +94,12 @@ function LabCard(props: { labIds?: string[]; gpa: number }): JSX.Element {
             // unreachable
             return <div />;
           }
-          const mingpa =
-            lab.grades.gpas1.at(lab.capacity - 1) ??
-            lab.grades.gpas1.at(lab.grades.gpas1.length - 1) ??
-            -1;
-          const gpaAveg =
-            lab.grades.gpas1.length != 0
-              ? lab.grades.gpas1.reduce((prev, cur) => prev + cur) /
-                lab.grades.gpas1.length
-              : -1;
+
+          const mingpa = calcMinGpa(lab);
+          const gpaAveg = calcLabGpaAveg(lab);
           const labMag = (lab.firstChoice / lab.capacity) * 100;
 
-          if (
-            i == 0 &&
-            lab.grades.gpas1.length >= lab.capacity &&
-            mingpa > user.gpa
-          ) {
+          if (i == 0 && !isAssignable(lab, user.gpa)) {
             const newNotifications = [...notifications];
             newNotifications.push({
               severity: 'error',
@@ -107,14 +126,12 @@ function LabCard(props: { labIds?: string[]; gpa: number }): JSX.Element {
                 {lab.name}{' '}
                 <Tooltip
                   title={
-                    lab.grades.gpas1.length < lab.capacity ||
-                    cmpLessThan(mingpa, user.gpa)
+                    isAssignable(lab, user.gpa)
                       ? '配属可能です'
                       : '配属ができません'
                   }
                 >
-                  {lab.grades.gpas1.length < lab.capacity ||
-                  cmpLessThan(mingpa, user.gpa) ? (
+                  {isAssignable(lab, user.gpa) ? (
                     <CheckIcon fontSize='small' sx={{ color: 'green' }} />
                   ) : (
                     <CloseIcon fontSize='small' sx={{ color: 'red' }} />

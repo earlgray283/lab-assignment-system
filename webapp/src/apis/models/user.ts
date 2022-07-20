@@ -4,6 +4,7 @@ export interface ApiUser {
   lab1?: string;
   lab2?: string;
   lab3?: string;
+  confirmedLab?: string;
 }
 
 export interface UserLab {
