@@ -10,10 +10,11 @@ import (
 )
 
 type Lab struct {
-	ID        string
-	Name      string
-	Capacity  int
-	CreatedAt time.Time
+	ID              string
+	Name            string
+	Capacity        int
+	ConfirmedNumber int
+	CreatedAt       time.Time
 }
 
 const KindLab = "lab"
