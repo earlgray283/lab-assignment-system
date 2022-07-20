@@ -40,6 +40,9 @@ func TestLoadUsersFromCsv(t *testing.T) {
 		if user.Lab1 != nil && user.Lab2 != nil && user.Lab3 != nil {
 			hasLabCount++
 		}
+		if userMap[user.UID].Lab1 != user.Lab1 || userMap[user.UID].Lab2 != user.Lab2 || userMap[user.UID].Lab3 != user.Lab3 {
+			t.Fatal("labs not equal")
+		}
 	}
 	if hasLabCount == 0 {
 		t.Fatal("lab count must not be 0")
