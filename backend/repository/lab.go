@@ -15,6 +15,7 @@ type Lab struct {
 	Capacity        int
 	ConfirmedNumber int
 	CreatedAt       time.Time
+	UpdatedAt       *time.Time
 }
 
 const KindLab = "lab"
