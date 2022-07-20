@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -110,7 +111,11 @@ func loadUsersFromCsv(csvName string, oldUserMap map[string]*User) ([]*User, []*
 		if err != nil {
 			log.Fatal(err)
 		}
-		gpa, _ := strconv.ParseFloat(cols[0], 64)
+		uid := strings.Trim(cols[0], "\ufeff")
+		gpa, err := strconv.ParseFloat(uid, 64)
+		if err != nil {
+			return nil, nil, err
+		}
 		newUser := oldUserMap[NewUserKey(cols[1]).Name]
 		if newUser == nil {
 			newUser = &User{
@@ -119,6 +124,9 @@ func loadUsersFromCsv(csvName string, oldUserMap map[string]*User) ([]*User, []*
 				CreatedAt: time.Now(),
 			}
 		}
+		now := time.Now()
+		newUser.Gpa = gpa
+		newUser.UpdatedAt = &now
 		newUserKeys = append(newUserKeys, NewUserKey(cols[1]))
 		newUsers = append(newUsers, newUser)
 	}
