@@ -62,11 +62,12 @@ func (srv *Server) HandleUpdateLabs() gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, &models.User{
-			UID:  user.UID,
-			Gpa:  user.Gpa,
-			Lab1: user.Lab1,
-			Lab2: user.Lab2,
-			Lab3: user.Lab3,
+			UID:          user.UID,
+			Gpa:          user.Gpa,
+			Lab1:         user.Lab1,
+			Lab2:         user.Lab2,
+			Lab3:         user.Lab3,
+			ConfirmedLab: user.ConfirmedLab,
 		})
 	}
 }

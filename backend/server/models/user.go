@@ -1,11 +1,12 @@
 package models
 
 type User struct {
-	UID  string  `json:"uid"`
-	Gpa  float64 `json:"gpa"`
-	Lab1 *string `json:"lab1"`
-	Lab2 *string `json:"lab2"`
-	Lab3 *string `json:"lab3"`
+	UID          string  `json:"uid"`
+	Gpa          float64 `json:"gpa"`
+	Lab1         *string `json:"lab1"`
+	Lab2         *string `json:"lab2"`
+	Lab3         *string `json:"lab3"`
+	ConfirmedLab *string `json:"confirmedLab"`
 }
 
 type UserLab struct {
