@@ -30,6 +30,11 @@ func (srv *Server) HandleUpdateLabs() gin.HandlerFunc {
 			return
 		}
 
+		if user.ConfirmedLab != nil {
+			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "既に研究室が確定しています"))
+			return
+		}
+
 		labs, _, err := repository.FetchAllLabs(c.Request.Context(), srv.dc, []string{userLab.Lab1})
 		if err != nil {
 			srv.logger.Println(err)
@@ -37,7 +42,7 @@ func (srv *Server) HandleUpdateLabs() gin.HandlerFunc {
 			return
 		}
 		if labs[0].Capacity == labs[0].ConfirmedNumber {
-			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "the lab was locked"))
+			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "その研究室への配属はできません。"))
 			return
 		}
 
