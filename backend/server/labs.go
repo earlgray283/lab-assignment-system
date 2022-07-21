@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/datastore"
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,7 @@ func (srv *Server) LabsRouter() {
 	{
 		r.GET("", srv.HandleGetAllLabs())
 	}
-	srv.r.POST("/labs/confirm", srv.HandlePostConfirmLabs())
+	srv.r.Use(srv.Authentication()).POST("/labs/confirm", srv.HandlePostConfirmLabs())
 }
 
 func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
@@ -90,6 +91,13 @@ func (srv *Server) HandleGetAllLabs() gin.HandlerFunc {
 
 func (srv *Server) HandlePostConfirmLabs() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		deadline, err := time.Parse("2006-01-02T15:04:05", c.Query("deadline"))
+		if err != nil {
+			srv.logger.Println(err)
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
 		var users []*repository.User
 		if _, err := srv.dc.GetAll(c.Request.Context(), datastore.NewQuery(repository.KindUser), &users); err != nil {
 			srv.logger.Println(err)
@@ -108,16 +116,23 @@ func (srv *Server) HandlePostConfirmLabs() gin.HandlerFunc {
 		userKeys := make([]*datastore.Key, 0, len(users))
 		labMap := lib.NewMapFromSlice(lib.MapSlice(labs, func(lab *repository.Lab) string { return lab.ID }), labs)
 		for _, user := range users {
-			if user.Lab1 == nil {
+			if user.Lab1 == nil || user.UpdatedAt == nil {
+				continue
+			}
+			if user.ConfirmedLab != nil {
 				continue
 			}
 			if labMap[*user.Lab1].Capacity == labMap[*user.Lab1].ConfirmedNumber {
 				continue
 			}
-			user.ConfirmedLab = user.Lab1
-			labMap[*user.Lab1].ConfirmedNumber++
+
+			if user.UpdatedAt.Before(deadline) {
+				user.ConfirmedLab = user.Lab1
+				labMap[*user.Lab1].ConfirmedNumber++
+			}
 			userKeys = append(userKeys, repository.NewUserKey(user.UID))
 		}
+
 		newLabKeys := make([]*datastore.Key, 0, len(labs))
 		newLabs := make([]*repository.Lab, 0, len(labs))
 		for _, lab := range labMap {
