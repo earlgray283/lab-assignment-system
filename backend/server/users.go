@@ -30,7 +30,7 @@ func (srv *Server) HandleUpdateLabs() gin.HandlerFunc {
 			return
 		}
 
-		if user.ConfirmedLab != nil {
+		if user.ConfirmedLab != "" {
 			lib.AbortWithErrorJSON(c, lib.NewError(http.StatusBadRequest, "既に研究室が確定しています"))
 			return
 		}
@@ -66,13 +66,17 @@ func (srv *Server) HandleUpdateLabs() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+		var confirmedLab *string
+		if user.ConfirmedLab != "" {
+			confirmedLab = &user.ConfirmedLab
+		}
 		c.JSON(http.StatusOK, &models.User{
 			UID:          user.UID,
 			Gpa:          user.Gpa,
 			Lab1:         user.Lab1,
 			Lab2:         user.Lab2,
 			Lab3:         user.Lab3,
-			ConfirmedLab: user.ConfirmedLab,
+			ConfirmedLab: confirmedLab,
 		})
 	}
 }

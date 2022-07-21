@@ -12,7 +12,7 @@ type User struct {
 	Lab1         *string
 	Lab2         *string
 	Lab3         *string
-	ConfirmedLab *string
+	ConfirmedLab string
 	CreatedAt    time.Time
 	UpdatedAt    *time.Time
 }

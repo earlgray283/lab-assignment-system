@@ -113,13 +113,14 @@ func (srv *Server) HandlePostConfirmLabs() gin.HandlerFunc {
 
 		sort.Slice(users, func(i, j int) bool { return users[i].Gpa > users[j].Gpa })
 
-		userKeys := make([]*datastore.Key, 0, len(users))
+		newUsers := make([]*repository.User, 0)
+		newUserKeys := make([]*datastore.Key, 0, len(users))
 		labMap := lib.NewMapFromSlice(lib.MapSlice(labs, func(lab *repository.Lab) string { return lab.ID }), labs)
 		for _, user := range users {
 			if user.Lab1 == nil || user.UpdatedAt == nil {
 				continue
 			}
-			if user.ConfirmedLab != nil {
+			if user.ConfirmedLab != "" {
 				continue
 			}
 			if labMap[*user.Lab1].Capacity == labMap[*user.Lab1].ConfirmedNumber {
@@ -127,10 +128,12 @@ func (srv *Server) HandlePostConfirmLabs() gin.HandlerFunc {
 			}
 
 			if user.UpdatedAt.Before(deadline) {
-				user.ConfirmedLab = user.Lab1
+				fmt.Println("confirmedLab", user.Lab1)
+				user.ConfirmedLab = *user.Lab1
 				labMap[*user.Lab1].ConfirmedNumber++
+				newUsers = append(newUsers, user)
+				newUserKeys = append(newUserKeys, repository.NewUserKey(user.UID))
 			}
-			userKeys = append(userKeys, repository.NewUserKey(user.UID))
 		}
 
 		newLabKeys := make([]*datastore.Key, 0, len(labs))
@@ -141,7 +144,7 @@ func (srv *Server) HandlePostConfirmLabs() gin.HandlerFunc {
 		}
 
 		if _, err := srv.dc.RunInTransaction(c.Request.Context(), func(tx *datastore.Transaction) error {
-			if _, err := tx.PutMulti(userKeys, users); err != nil {
+			if _, err := tx.PutMulti(newUserKeys, newUsers); err != nil {
 				return err
 			}
 			if _, err := tx.PutMulti(newLabKeys, newLabs); err != nil {
@@ -157,9 +160,12 @@ func (srv *Server) HandlePostConfirmLabs() gin.HandlerFunc {
 		c.Writer.Header().Set("Content-Type", "text/csv")
 		csvw := csv.NewWriter(c.Writer)
 		for _, user := range users {
+			if user.Lab1 == nil {
+				continue
+			}
 			confirmedLab := "undefined"
-			if user.ConfirmedLab != nil {
-				confirmedLab = *user.ConfirmedLab
+			if user.ConfirmedLab != "" {
+				confirmedLab = user.ConfirmedLab
 			}
 			csvw.Write([]string{user.UID, confirmedLab})
 		}
