@@ -96,6 +96,9 @@ func (srv *Server) HandleGetUser() gin.HandlerFunc {
 			Lab2: repoUser.Lab2,
 			Lab3: repoUser.Lab3,
 		}
+		if repoUser.ConfirmedLab != "" && repoUser.ConfirmedLab != "undefined" {
+			user.ConfirmedLab = &repoUser.ConfirmedLab
+		}
 		c.JSON(http.StatusOK, user)
 	}
 }
