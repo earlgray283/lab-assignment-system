@@ -1,5 +1,5 @@
 import { Box, Button } from '@mui/material';
-import { DefaultLayout } from '../layout';
+import { DefaultLayout } from '../Layout';
 import React from 'react';
 import { PrivacyPolicy as PrivacyPolicyCard } from '../cards/PrivacyPolicy';
 

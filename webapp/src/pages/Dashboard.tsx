@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { UserContext } from '../App';
 import GpaCard from '../components/cards/GpaCard';
-import { FullLayout } from '../components/layout';
+import { FullLayout } from '../components/Layout';
 import { Notification } from '../components/Notification';
 import LabCard from '../components/cards/LabCard';
 
