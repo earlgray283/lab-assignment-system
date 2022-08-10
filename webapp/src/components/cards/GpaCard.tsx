@@ -11,7 +11,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { fetchGrades } from '../../apis/grade';
-import { sleep } from '../../lib/util';
+import { sleep } from '../../libs/util';
 import { DisplayGpa } from '../util';
 
 ChartJS.register(

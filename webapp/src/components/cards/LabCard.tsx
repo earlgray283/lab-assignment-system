@@ -13,7 +13,7 @@ import {
   NotificationsDispatchContext,
 } from '../../pages/Dashboard';
 import { Link } from 'react-router-dom';
-import { cmpLessThan } from '../../lib/util';
+import { cmpLessThan } from '../../libs/util';
 
 ChartJS.register(ArcElement, Legend);
 

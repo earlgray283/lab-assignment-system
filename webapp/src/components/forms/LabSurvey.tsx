@@ -2,7 +2,7 @@ import { Stack, TextField, MenuItem } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { LabList } from '../../apis/models/lab';
 import { fetchLabs } from '../../apis/labs';
-import { sleep } from '../../lib/util';
+import { sleep } from '../../libs/util';
 
 export interface LabSurveyFormInput {
   lab1: string;

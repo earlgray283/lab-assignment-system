@@ -1,6 +1,6 @@
 import { ApiError } from './models/api-error';
 import { AxiosError } from 'axios';
-import { http, postJson } from '../lib/axios';
+import { http, postJson } from '../libs/axios';
 import { ApiUser } from './models/user';
 
 export async function signin(uid: string): Promise<ApiUser> {

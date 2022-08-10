@@ -1,6 +1,6 @@
 import { ApiError } from './models/api-error';
 import { AxiosError } from 'axios';
-import { http, putJson } from '../lib/axios';
+import { http, putJson } from '../libs/axios';
 import { ApiUser, UserLab } from './models/user';
 
 export async function fetchUser(): Promise<ApiUser> {

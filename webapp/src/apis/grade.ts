@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios';
-import { http } from './../lib/axios';
+import { http } from '../libs/axios';
 import { ApiError } from './models/api-error';
 
 export async function fetchGrades(): Promise<number[]> {

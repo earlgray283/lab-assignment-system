@@ -5,7 +5,7 @@ import { updateUserLab } from '../apis/user';
 import { UserContext, UserDispatchContext } from '../App';
 import LabSurvey from '../components/forms/LabSurvey';
 import { DefaultLayout } from '../components/layout';
-import { sleep } from '../lib/util';
+import { sleep } from '../libs/util';
 
 export interface LabSurveyFormInput {
   lab1: string;
