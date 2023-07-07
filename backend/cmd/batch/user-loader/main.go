@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"encoding/csv"
-	"fmt"
 	"io"
+	"lab-assignment-system-backend/server/domain/entity"
 	"log"
 	"os"
 	"strconv"
@@ -12,29 +12,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"google.golang.org/api/option"
 )
 
 const ProjectId = "lab-assignment-system-project"
-
-type User struct {
-	UID          string  `json:"uid,omitempty"`
-	Gpa          float64 `json:"gpa"`
-	Lab1         *string `json:"lab1,omitempty"`
-	Lab2         *string `json:"lab2,omitempty"`
-	Lab3         *string `json:"lab3,omitempty"`
-	ConfirmedLab string
-	CreatedAt    time.Time
-	UpdatedAt    *time.Time
-}
-
-const KindUser = "user"
-
-func NewUserKey(uid string) *datastore.Key {
-	return datastore.NameKey(KindUser, uid, nil)
-}
-
-type Map[K comparable, V any] map[K]V
 
 func NewMapFrom2Slices[K comparable, V any](keys []K, values []V) map[K]V {
 	if len(keys) != len(values) {
@@ -56,12 +36,13 @@ func mapSlice[T, U any](a []T, f func(t T) U) []U {
 }
 
 func main() {
-	d, err := datastore.NewClient(context.Background(), ProjectId, option.WithCredentialsFile("../../backend/credentials.json"))
+	dc, err := datastore.NewClient(context.Background(), ProjectId)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer dc.Close()
 
-	users, userKeys, err := fetchAllUsers(context.Background(), d)
+	users, userKeys, err := fetchAllUsers(context.Background(), dc)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,32 +56,29 @@ func main() {
 		log.Fatal(err)
 	}
 	_ = newUserKeys
-	for _, user := range newUsers {
-		fmt.Println(user.Lab1, user.Lab2, user.Lab3)
-	}
 
-	if _, err := d.PutMulti(context.Background(), newUserKeys, newUsers); err != nil {
+	if _, err := dc.PutMulti(context.Background(), newUserKeys, newUsers); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func fetchAllUsers(ctx context.Context, d *datastore.Client) ([]*User, []*datastore.Key, error) {
-	var users []*User
-	keys, err := d.GetAll(ctx, datastore.NewQuery(KindUser), &users)
+func fetchAllUsers(ctx context.Context, d *datastore.Client) ([]*entity.User, []*datastore.Key, error) {
+	var users []*entity.User
+	keys, err := d.GetAll(ctx, datastore.NewQuery(entity.KindUser), &users)
 	if err != nil {
 		return nil, nil, err
 	}
 	return users, keys, nil
 }
 
-func loadUsersFromCsv(csvName string, oldUserMap map[string]*User) ([]*User, []*datastore.Key, error) {
+func loadUsersFromCsv(csvName string, oldUserMap map[string]*entity.User) ([]*entity.User, []*datastore.Key, error) {
 	f, err := os.Open(csvName)
 	if err != nil {
 		return nil, nil, err
 	}
 	defer f.Close()
 
-	newUsers := make([]*User, 0)
+	newUsers := make([]*entity.User, 0)
 	newUserKeys := make([]*datastore.Key, 0)
 	r := csv.NewReader(f)
 	for {
@@ -116,9 +94,9 @@ func loadUsersFromCsv(csvName string, oldUserMap map[string]*User) ([]*User, []*
 		if err != nil {
 			return nil, nil, err
 		}
-		newUser := oldUserMap[NewUserKey(cols[1]).Name]
+		newUser := oldUserMap[entity.NewUserKey(cols[1]).Name]
 		if newUser == nil {
-			newUser = &User{
+			newUser = &entity.User{
 				UID:       cols[1],
 				Gpa:       gpa,
 				CreatedAt: time.Now(),
@@ -127,7 +105,7 @@ func loadUsersFromCsv(csvName string, oldUserMap map[string]*User) ([]*User, []*
 		now := time.Now()
 		newUser.Gpa = gpa
 		newUser.UpdatedAt = &now
-		newUserKeys = append(newUserKeys, NewUserKey(cols[1]))
+		newUserKeys = append(newUserKeys, entity.NewUserKey(cols[1]))
 		newUsers = append(newUsers, newUser)
 	}
 	return newUsers, newUserKeys, nil
