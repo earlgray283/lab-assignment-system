@@ -23,12 +23,12 @@ func (c *LabsController) ListLabs(gc *gin.Context) {
 	if yearText, ok := gc.GetQuery("year"); ok {
 		year2, err := strconv.Atoi(yearText)
 		if err != nil {
-			lib.NewBadRequestError("year must be a number")
+			gc.AbortWithStatusJSON(http.StatusBadRequest, "year must be a number")
 			return
 		}
 		year = year2
 	} else {
-		lib.NewBadRequestError("year is required")
+		gc.AbortWithStatusJSON(http.StatusBadRequest, "year is required")
 		return
 	}
 	opts := make([]usecases.ListLabsOptionFunc, 0)

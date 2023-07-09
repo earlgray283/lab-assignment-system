@@ -22,7 +22,7 @@ func (c *GradesController) ListGrades(gc *gin.Context) {
 	if yearText, ok := gc.GetQuery("year"); ok {
 		year2, err := strconv.Atoi(yearText)
 		if err != nil {
-			lib.NewBadRequestError("year must be a number")
+			gc.AbortWithStatusJSON(http.StatusBadRequest, "year must be a number")
 			return
 		}
 		year = year2

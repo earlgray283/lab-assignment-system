@@ -26,10 +26,11 @@ func NewServer(dsClient *datastore.Client, addr string, corsConfig *cors.Config)
 	usersController := i_http.NewUsersController(usersInteractor)
 
 	r.POST("/auth/signin", authController.Login)
-	r.POST("/auth/signout", authController.Logout, middleware.Authentication(dsClient))
-	r.POST("/labs", labsController.ListLabs)
+	r.POST("/auth/signout", middleware.Authentication(dsClient), authController.Logout)
+	r.GET("/labs", labsController.ListLabs)
 	// TODO: GET /labs/csv
-	r.PUT("/users/lab", usersController.UpdateUser, middleware.Authentication(dsClient))
+	r.PUT("/users/lab", middleware.Authentication(dsClient), usersController.UpdateUser)
+	r.GET("/users/me", middleware.Authentication(dsClient), usersController.GetUserMe)
 
 	return &http.Server{
 		Addr:    addr,

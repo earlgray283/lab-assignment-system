@@ -28,3 +28,6 @@ dist-ssr
 .firebaserc
 firebase.json
 .firebase
+
+.yarn/cache
+.yarn/install-state.gz

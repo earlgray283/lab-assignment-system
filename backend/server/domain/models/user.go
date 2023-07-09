@@ -8,6 +8,10 @@ type UpdateUserResponse struct {
 	User *User `json:"user,omitempty"`
 }
 
+type GetUserMeResponse struct {
+	User *User `json:"user,omitempty"`
+}
+
 type User struct {
 	UID          string
 	Gpa          float64

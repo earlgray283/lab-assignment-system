@@ -5,6 +5,7 @@ import (
 	"lab-assignment-system-backend/server/domain/models"
 	"lab-assignment-system-backend/server/lib"
 	"lab-assignment-system-backend/server/usecases"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,10 @@ func NewUsersController(interactor *usecases.UsersInteractor) *UsersController {
 
 func (c *UsersController) UpdateUser(gc *gin.Context) {
 	user, _ := middleware.GetUser(gc)
+	if user.UID == "test" {
+		gc.AbortWithStatusJSON(http.StatusForbidden, "テストユーザーは編集できません")
+		return
+	}
 
 	var payload models.UpdateUserPayload
 	if err := gc.ShouldBindJSON(&payload); err != nil {
@@ -35,4 +40,18 @@ func (c *UsersController) UpdateUser(gc *gin.Context) {
 	}
 
 	gc.JSON(200, resp)
+}
+
+func (c *UsersController) GetUserMe(gc *gin.Context) {
+	user, _ := middleware.GetUser(gc)
+
+	gc.JSON(200, models.GetUserMeResponse{
+		User: &models.User{
+			UID:          user.UID,
+			Gpa:          user.Gpa,
+			WishLab:      user.WishLab,
+			ConfirmedLab: user.ConfirmedLab,
+			Year:         user.Year,
+		},
+	})
 }

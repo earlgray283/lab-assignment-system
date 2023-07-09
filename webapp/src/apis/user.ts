@@ -5,7 +5,7 @@ import { ApiUser, UserLab } from './models/user';
 
 export async function fetchUser(): Promise<ApiUser> {
   try {
-    const resp = await http.get<ApiUser>('/user');
+    const resp = await http.get<ApiUser>('/users/me');
     return resp.data;
   } catch (e: unknown) {
     if (e instanceof AxiosError) {
@@ -23,7 +23,7 @@ export async function fetchUser(): Promise<ApiUser> {
 
 export async function updateUserLab(user: UserLab): Promise<ApiUser> {
   try {
-    const resp = await putJson<ApiUser>('/user/lab', user);
+    const resp = await putJson<ApiUser>('/users/lab', user);
     return resp.data;
   } catch (e: unknown) {
     if (e instanceof AxiosError) {

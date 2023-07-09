@@ -8,13 +8,13 @@ import (
 )
 
 type Lab struct {
-	ID             string
-	Name           string
-	Capacity       int
-	Year           int
-	UserGPAs       []*UserGPA // the length must be ApplicantCount
-	CreatedAt      time.Time
-	UpdatedAt      *time.Time
+	ID        string
+	Name      string
+	Capacity  int
+	Year      int
+	UserGPAs  []*UserGPA // the length must be ApplicantCount
+	CreatedAt time.Time
+	UpdatedAt *time.Time
 }
 
 type UserGPA struct {

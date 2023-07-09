@@ -65,7 +65,7 @@ func (i *LabsInteractor) ListLabs(ctx context.Context, year int, optionFuncs ...
 			return nil, lib.NewInternalServerError(err.Error())
 		}
 	} else {
-		q := datastore.NewQuery(entity.KindUser).FilterField("Year", "=", year)
+		q := datastore.NewQuery(entity.KindLab).FilterField("Year", "=", year)
 		if _, err := i.dsClient.GetAll(ctx, q, &labs); err != nil {
 			i.logger.Println(err)
 			return nil, lib.NewInternalServerError(err.Error())
@@ -79,7 +79,12 @@ func (i *LabsInteractor) ListLabs(ctx context.Context, year int, optionFuncs ...
 				Name:     lab.Name,
 				Capacity: lab.Capacity,
 				Year:     lab.Year,
-				UserGPAs: lab.UserGPAs,
+				UserGPAs: lo.Map(lab.UserGPAs, func(userGPA *entity.UserGPA, _ int) *models.UserGPA {
+					return &models.UserGPA{
+						UserID: userGPA.UserKey.Name,
+						GPA:    userGPA.GPA,
+					}
+				}),
 			}
 		}),
 	}, nil
