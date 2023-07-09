@@ -75,12 +75,11 @@ func (i *LabsInteractor) ListLabs(ctx context.Context, year int, optionFuncs ...
 	return &models.ListLabsResponse{
 		Labs: lo.Map(labs, func(lab *entity.Lab, _ int) *models.Lab {
 			return &models.Lab{
-				ID:             lab.ID,
-				Name:           lab.Name,
-				Capacity:       lab.Capacity,
-				Year:           lab.Year,
-				ApplicantCount: lab.ApplicantCount,
-				UserGPAs:       lab.UserGPAs,
+				ID:       lab.ID,
+				Name:     lab.Name,
+				Capacity: lab.Capacity,
+				Year:     lab.Year,
+				UserGPAs: lab.UserGPAs,
 			}
 		}),
 	}, nil

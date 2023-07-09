@@ -1,15 +1,14 @@
 package main
 
 import (
-	"bufio"
 	"context"
+	"encoding/csv"
 	"flag"
-	"fmt"
+	"io"
 	"lab-assignment-system-backend/server/domain/entity"
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -17,16 +16,12 @@ import (
 
 const ProjectId = "lab-assignment-system-project"
 
-var (
-	year = flag.Int("year", time.Now().Year(), "year")
-)
-
 func main() {
 	flag.Parse()
 
 	csvPath := flag.Arg(0)
 	if csvPath == "" {
-		fmt.Println("please specify csv location")
+		log.Fatal("please specify csv location")
 	}
 
 	dc, err := datastore.NewClient(context.Background(), ProjectId)
@@ -41,18 +36,32 @@ func main() {
 	}
 	defer f.Close()
 
-	sc := bufio.NewScanner(f)
+	r := csv.NewReader(f)
 	mutations := make([]*datastore.Mutation, 0)
-	for sc.Scan() {
-		tokens := strings.Split(sc.Text(), ",")
-		capacity, _ := strconv.Atoi(tokens[2])
+	for {
+		records, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		capacity, err := strconv.Atoi(records[2])
+		if err != nil {
+			log.Fatal(err)
+		}
+		year, err := strconv.Atoi(records[3])
+		if err != nil {
+			log.Fatal(err)
+		}
 		lab := &entity.Lab{
-			ID:        tokens[1],
-			Name:      tokens[0],
+			ID:        records[0],
+			Name:      records[1],
 			Capacity:  capacity,
+			Year:      year,
 			CreatedAt: time.Now(),
 		}
-		mutations = append(mutations, datastore.NewInsert(entity.NewLabKey(lab.ID, *year), lab))
+		mutations = append(mutations, datastore.NewInsert(entity.NewLabKey(lab.ID, year), lab))
 	}
 	if _, err := dc.Mutate(context.Background(), mutations...); err != nil {
 		log.Fatal(err)

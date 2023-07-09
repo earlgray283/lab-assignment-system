@@ -12,7 +12,6 @@ type Lab struct {
 	Name           string
 	Capacity       int
 	Year           int
-	ApplicantCount int
 	UserGPAs       []*UserGPA // the length must be ApplicantCount
 	CreatedAt      time.Time
 	UpdatedAt      *time.Time

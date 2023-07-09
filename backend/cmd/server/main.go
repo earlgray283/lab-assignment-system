@@ -14,35 +14,21 @@ import (
 	_ "time/tzdata"
 
 	"cloud.google.com/go/datastore"
-	"github.com/joho/godotenv"
+	"github.com/gin-contrib/cors"
 )
 
 const ProjectId = "lab-assignment-system-project"
 
 var (
-	frontendUrl string
-	gakujoUrl   string
+	frontendUrl = os.Getenv("FRONTEND_URL")
 )
 
-func getEnvOrFatal(key string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		log.Fatal("environmental value " + key + " must be set")
-	}
-	return value
-}
-
 func init() {
-	_ = godotenv.Load(".env")
-
 	jst, err := time.LoadLocation("Asia/Tokyo")
 	if err != nil {
 		log.Fatal(err)
 	}
 	time.Local = jst
-
-	frontendUrl = getEnvOrFatal("FRONTEND_URL")
-	gakujoUrl = getEnvOrFatal("GAKUJO_URL")
 }
 
 func main() {
@@ -56,9 +42,7 @@ func main() {
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
 	}
-	addr := fmt.Sprintf(":%v", port)
-
-	srv := api.NewServer(dc, addr, []string{frontendUrl, gakujoUrl})
+	srv := api.NewServer(dc, fmt.Sprintf(":%v", port), newCorsConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -81,4 +65,14 @@ func main() {
 	<-ctx.Done()
 	log.Println("timeout of 5 seconds.")
 	log.Println("Server exiting")
+}
+
+func newCorsConfig() *cors.Config {
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowCredentials = true
+	corsConfig.AllowOrigins = append(corsConfig.AllowOrigins, "http://localhost:3000")
+	if frontendUrl != "" {
+		corsConfig.AllowOrigins = append(corsConfig.AllowOrigins, frontendUrl)
+	}
+	return &corsConfig
 }

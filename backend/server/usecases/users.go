@@ -99,7 +99,6 @@ func (i *UsersInteractor) UpdateUser(ctx context.Context, user *entity.User, pay
 }
 
 func updateNewLab(lab *entity.Lab, userKey *datastore.Key, gpa float64) {
-	lab.ApplicantCount++
 	lab.UserGPAs = append(lab.UserGPAs, &entity.UserGPA{
 		UserKey: userKey,
 		GPA:     gpa,
@@ -108,7 +107,6 @@ func updateNewLab(lab *entity.Lab, userKey *datastore.Key, gpa float64) {
 }
 
 func updateOldLab(lab *entity.Lab, userKey *datastore.Key, gpa float64) error {
-	lab.ApplicantCount--
 	_, index, exist := lo.FindIndexOf(lab.UserGPAs, func(userGPA *entity.UserGPA) bool {
 		return userGPA.UserKey.Equal(userKey)
 	})
