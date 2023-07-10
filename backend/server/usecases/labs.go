@@ -21,8 +21,7 @@ func NewLabsInteractor(dsClient *datastore.Client, logger *log.Logger) *LabsInte
 }
 
 type ListLabsOption struct {
-	labIDs      []string
-	OptFieldSet map[string]struct{}
+	labIDs []string
 }
 
 type ListLabsOptionFunc func(o *ListLabsOption)
@@ -30,21 +29,6 @@ type ListLabsOptionFunc func(o *ListLabsOption)
 func WithLabIDs(labIDs []string) ListLabsOptionFunc {
 	return func(o *ListLabsOption) {
 		o.labIDs = labIDs
-	}
-}
-
-func WithOptFieldSet(optFields []string) ListLabsOptionFunc {
-	return func(o *ListLabsOption) {
-		optFieldSet := make(map[string]struct{})
-		for _, optField := range optFields {
-			switch optField {
-			case "grade":
-				optFieldSet["grade"] = struct{}{}
-			default:
-				continue
-			}
-		}
-		o.OptFieldSet = optFieldSet
 	}
 }
 

@@ -2,9 +2,13 @@ import { AxiosError } from 'axios';
 import { http } from '../libs/axios';
 import { ApiError } from './models/api-error';
 
-export async function fetchGrades(): Promise<number[]> {
+export async function fetchGrades(year: number): Promise<number[]> {
   try {
-    const resp = await http.get<{ gpa: number }[]>('/grades');
+    const resp = await http.get<{ gpa: number }[]>('/grades', {
+      params: {
+        year: year,
+      },
+    });
     return resp.data.map((v) => v.gpa);
   } catch (e: unknown) {
     if (e instanceof AxiosError) {

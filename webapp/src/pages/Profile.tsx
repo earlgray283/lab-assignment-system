@@ -1,17 +1,21 @@
-import { Alert, Box, Button, Typography } from '@mui/material';
-import React, { useContext, useState } from 'react';
-import { ApiUser, UserLab } from '../apis/models/user';
+import {
+  Alert,
+  Box,
+  Button,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
+import React, { useContext, useEffect, useState } from 'react';
+import { ApiUser } from '../apis/models/user';
 import { updateUserLab } from '../apis/user';
 import { UserContext, UserDispatchContext } from '../App';
-import LabSurvey from '../components/forms/LabSurvey';
 import { DefaultLayout } from '../components/Layout';
 import { sleep } from '../libs/util';
-
-export interface LabSurveyFormInput {
-  lab1: string;
-  lab2: string;
-  lab3: string;
-}
+import { fetchLabs } from '../apis/labs';
+import { Lab } from '../apis/models/lab';
+import { useSearchParams } from 'react-router-dom';
 
 let user: ApiUser | null | undefined;
 
@@ -29,46 +33,56 @@ function Profile(): JSX.Element {
     undefined
   );
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [labSurvey, setLabSurvey] = useState<LabSurveyFormInput>({
-    lab1: user.lab1 ?? '',
-    lab2: user.lab2 ?? '',
-    lab3: user.lab3 ?? '',
-  });
+  const [wishLab, setWishLab] = useState<string | undefined>(undefined);
   const setCurrentUser = useContext(UserDispatchContext);
+  const [labList, setLabList] = useState<Lab[]>([]);
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const year = searchParams.get('year');
+    (async () => {
+      const labList2 = await fetchLabs(
+        year ? Number(year) : user.year,
+        undefined
+      );
+      setLabList(labList2.labs ?? []);
+    })();
+  }, [searchParams]);
 
   return (
     <DefaultLayout>
       <Typography variant='h4'>Profile</Typography>
       <Box>
-        {errorMessage && <Alert severity='error'>errorMessage</Alert>}
+        {errorMessage && <Alert severity='error'>{errorMessage}</Alert>}
         {successMessage && <Alert severity='success'>{successMessage}</Alert>}
         <Typography variant='h6' marginBottom='10px'>
           研究室アンケートの変更
         </Typography>
-        <LabSurvey
-          onChange={(lab1, lab2, lab3) => {
-            console.log(lab1, lab2, lab3);
-            setLabSurvey({
-              lab1,
-              lab2,
-              lab3,
-            });
-          }}
-          defaultLab1={labSurvey.lab1}
-          defaultLab2={labSurvey.lab2}
-          defaultLab3={labSurvey.lab3}
-        />
+        <Stack spacing={2} width='90%' display='flex' flexDirection='column'>
+          <TextField
+            defaultValue={wishLab ?? ''}
+            select
+            label='希望する研究室'
+            onChange={(e) => setWishLab(e.target.value)}
+          >
+            <MenuItem value={''}>未選択</MenuItem>
+            {labList.map((lab) => (
+              <MenuItem value={lab.id} key={lab.id}>
+                {lab.name}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Stack>
         <Button
           variant='contained'
           sx={{ marginY: '10px' }}
           onClick={async () => {
-            const userLab: UserLab = {
-              lab1: labSurvey.lab1,
-              lab2: labSurvey.lab2,
-              lab3: labSurvey.lab3,
-            };
+            if (!wishLab) {
+              setErrorMessage('研究室を選択してください');
+              return;
+            }
             try {
-              const user = await updateUserLab(userLab);
+              const user = await updateUserLab(wishLab);
               console.log(user);
               setCurrentUser(user);
               setSuccessMessage('更新に成功しました');
@@ -79,7 +93,7 @@ function Profile(): JSX.Element {
             }
           }}
         >
-          保存する
+          更新する
         </Button>
       </Box>
     </DefaultLayout>

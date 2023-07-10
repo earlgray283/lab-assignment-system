@@ -22,7 +22,7 @@ func NewUsersInteractor(dsClient *datastore.Client, logger *log.Logger) *UsersIn
 	return &UsersInteractor{dsClient, logger}
 }
 
-func (i *UsersInteractor) UpdateUser(ctx context.Context, user *entity.User, payload *models.UpdateUserPayload) (*models.UpdateUserResponse, error) {
+func (i *UsersInteractor) UpdateUser(ctx context.Context, user *entity.User, payload *models.UpdateUserPayload) (*models.User, error) {
 	now := time.Now()
 
 	// validation
@@ -87,14 +87,12 @@ func (i *UsersInteractor) UpdateUser(ctx context.Context, user *entity.User, pay
 		return nil, lib.NewInternalServerError(err.Error())
 	}
 
-	return &models.UpdateUserResponse{
-		User: &models.User{
-			UID:          user.UID,
-			Gpa:          user.Gpa,
-			WishLab:      user.WishLab,
-			ConfirmedLab: user.ConfirmedLab,
-			Year:         user.Year,
-		},
+	return &models.User{
+		UID:          user.UID,
+		Gpa:          user.Gpa,
+		WishLab:      user.WishLab,
+		ConfirmedLab: user.ConfirmedLab,
+		Year:         user.Year,
 	}, nil
 }
 

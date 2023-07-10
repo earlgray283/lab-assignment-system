@@ -8,11 +8,12 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { fetchGrades } from '../../apis/grade';
 import { sleep } from '../../libs/util';
 import { DisplayGpa } from '../util';
+import { UserContext } from '../../App';
 
 ChartJS.register(
   CategoryScale,
@@ -45,18 +46,19 @@ const options = {
 };
 
 let gpas: number[] | undefined;
-function useGpas(): number[] {
+function useGpas(year: number): number[] {
   if (gpas === undefined) {
-    throw fetchGrades()
+    throw fetchGrades(year)
       .then((data) => (gpas = data))
       .catch(() => sleep(2000));
   }
   return gpas;
 }
 
-function GpaCard(props: { gpa: number }): JSX.Element {
+function GpaCard(props: { year: number }): JSX.Element {
+  const user = useContext(UserContext);
   const [gpaClasses, setGpaClasses] = useState<number[]>([]);
-  const gpas = useGpas();
+  const gpas = useGpas(props.year);
   useEffect(() => {
     const list = new Array<number>(0, 0, 0, 0, 0, 0, 0, 0);
     for (const gpa of gpas) {
@@ -81,10 +83,14 @@ function GpaCard(props: { gpa: number }): JSX.Element {
     ],
   };
 
+  if (!user) {
+    return <div />;
+  }
+
   return (
     <Box boxShadow={2} padding='5px'>
       <p>
-        あなたの GPA は <DisplayGpa gpa={props.gpa} /> です
+        あなたの GPA は <DisplayGpa gpa={user.gpa} /> です
       </p>
       <Box display='flex' flexDirection='column' alignItems='center'>
         <Box width='50%' minWidth='300px'>

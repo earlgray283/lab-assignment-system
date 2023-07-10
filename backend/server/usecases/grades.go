@@ -3,7 +3,6 @@ package usecases
 import (
 	"context"
 	"lab-assignment-system-backend/server/domain/entity"
-	"lab-assignment-system-backend/server/domain/models"
 	"lab-assignment-system-backend/server/lib"
 	"log"
 
@@ -20,16 +19,14 @@ func NewGradesInteractor(dsClient *datastore.Client, logger *log.Logger) *Grades
 	return &GradesInteractor{dsClient, logger}
 }
 
-func (i *GradesInteractor) ListGrades(ctx context.Context, year int) (*models.ListGPAResponse, error) {
+func (i *GradesInteractor) ListGrades(ctx context.Context, year int) ([]float64, error) {
 	var users []*entity.User
 	q := datastore.NewQuery(entity.KindUser).FilterField("Year", "=", year)
 	if _, err := i.dsClient.GetAll(ctx, q, &users); err != nil {
 		i.logger.Println(err)
 		return nil, lib.NewInternalServerError(err.Error())
 	}
-	return &models.ListGPAResponse{
-		Gpas: lo.Map(users, func(user *entity.User, _ int) float64 {
-			return user.Gpa
-		}),
-	}, nil
+	return lo.Map(users, func(user *entity.User, _ int) float64 {
+		return user.Gpa
+	}), nil
 }

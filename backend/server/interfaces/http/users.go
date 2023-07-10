@@ -20,7 +20,7 @@ func NewUsersController(interactor *usecases.UsersInteractor) *UsersController {
 
 func (c *UsersController) UpdateUser(gc *gin.Context) {
 	user, _ := middleware.GetUser(gc)
-	if user.UID == "test" {
+	if user.UID == "test" && !lib.IsDebug() {
 		gc.AbortWithStatusJSON(http.StatusForbidden, "テストユーザーは編集できません")
 		return
 	}
@@ -45,13 +45,11 @@ func (c *UsersController) UpdateUser(gc *gin.Context) {
 func (c *UsersController) GetUserMe(gc *gin.Context) {
 	user, _ := middleware.GetUser(gc)
 
-	gc.JSON(200, models.GetUserMeResponse{
-		User: &models.User{
-			UID:          user.UID,
-			Gpa:          user.Gpa,
-			WishLab:      user.WishLab,
-			ConfirmedLab: user.ConfirmedLab,
-			Year:         user.Year,
-		},
+	gc.JSON(200, &models.User{
+		UID:          user.UID,
+		Gpa:          user.Gpa,
+		WishLab:      user.WishLab,
+		ConfirmedLab: user.ConfirmedLab,
+		Year:         user.Year,
 	})
 }

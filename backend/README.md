@@ -34,6 +34,11 @@ $ make datastore-emulator/start
 2. 以下のコマンドを実行する
 
 ```shell
+$ mkdir .datastore-exports
+$ gsutil -m cp -r \       
+  "gs://lab-assignment-system-backup/exports/default_namespace" \
+  "gs://lab-assignment-system-backup/exports/exports.overall_export_metadata" \
+  .datastore-exports/
 $ make datastore-emulator/import
 ```
 

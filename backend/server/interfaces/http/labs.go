@@ -35,9 +35,6 @@ func (c *LabsController) ListLabs(gc *gin.Context) {
 	if labIdsText, ok := gc.GetQuery("labIds"); ok {
 		opts = append(opts, usecases.WithLabIDs(strings.Split(labIdsText, "+")))
 	}
-	if optFieldsText, ok := gc.GetQuery("optFields"); ok {
-		opts = append(opts, usecases.WithOptFieldSet(strings.Split(optFieldsText, "+")))
-	}
 
 	resp, err := c.interactor.ListLabs(gc.Request.Context(), year, opts...)
 	if err != nil {

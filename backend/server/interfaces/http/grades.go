@@ -26,6 +26,9 @@ func (c *GradesController) ListGrades(gc *gin.Context) {
 			return
 		}
 		year = year2
+	} else {
+		gc.AbortWithStatusJSON(http.StatusBadRequest, "year is required")
+		return
 	}
 	resp, err := c.interactor.ListGrades(gc.Request.Context(), year)
 	if err != nil {

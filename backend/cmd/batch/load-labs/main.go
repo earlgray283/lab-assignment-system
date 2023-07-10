@@ -14,17 +14,19 @@ import (
 	"cloud.google.com/go/datastore"
 )
 
-const ProjectId = "lab-assignment-system-project"
-
 func main() {
 	flag.Parse()
 
+	projectID := os.Getenv("GCP_PROJECT_ID")
+	if projectID == "" {
+		log.Fatal("please set GCP_PROJECT_ID")
+	}
 	csvPath := flag.Arg(0)
 	if csvPath == "" {
 		log.Fatal("please specify csv location")
 	}
 
-	dc, err := datastore.NewClient(context.Background(), ProjectId)
+	dc, err := datastore.NewClient(context.Background(), projectID)
 	if err != nil {
 		log.Fatal(err)
 	}

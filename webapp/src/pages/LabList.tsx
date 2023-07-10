@@ -103,10 +103,10 @@ const columns: GridColDef<Lab>[] = [
 
 function LabListPage(): JSX.Element {
   const [labList, setLabList] = useState<Lab[]>([]);
-  const [year, setYear] = useState(2023);
+  const [year, setYear] = useState(new Date().getFullYear());
   useEffect(() => {
     (async () => {
-      const labList2 = await fetchLabs(year, undefined, ['grade']);
+      const labList2 = await fetchLabs(year);
       setLabList(labList2.labs ?? []);
     })();
   }, [year]);
