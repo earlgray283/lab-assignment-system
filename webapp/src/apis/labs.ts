@@ -5,7 +5,7 @@ import { ApiError } from './models/api-error';
 
 export async function fetchLabs(
   year: number,
-  labIds?: string[]
+  labIds?: string[],
 ): Promise<LabList> {
   try {
     const resp = await http.get<LabList>('/labs', {

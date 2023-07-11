@@ -28,7 +28,7 @@ export const LoadingDispatchContext = createContext<
 function App(): JSX.Element {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<ApiUser | null | undefined>(
-    undefined
+    undefined,
   );
 
   useEffect(() => {

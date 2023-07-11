@@ -51,7 +51,7 @@ const columns: GridColDef<Lab>[] = [
       let mag = 0;
       if (params.row.userGPAs) {
         mag = Math.round(
-          (params.row.userGPAs.length / params.row.capacity) * 100
+          (params.row.userGPAs.length / params.row.capacity) * 100,
         );
       }
       return <span>{mag}%</span>;

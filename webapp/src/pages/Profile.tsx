@@ -30,7 +30,7 @@ function useUser(): ApiUser {
 function Profile(): JSX.Element {
   const user = useUser();
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
-    undefined
+    undefined,
   );
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [wishLab, setWishLab] = useState<string | undefined>(undefined);
@@ -43,7 +43,7 @@ function Profile(): JSX.Element {
     (async () => {
       const labList2 = await fetchLabs(
         year ? Number(year) : user.year,
-        undefined
+        undefined,
       );
       setLabList(labList2.labs ?? []);
     })();
