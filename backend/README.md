@@ -1,5 +1,12 @@
 # lab-assignment-system-backend
 
+## Requirements
+
+- Go(https://go.dev/dl/)
+- gcloud CLI(https://cloud.google.com/sdk/docs/install?hl=ja)
+- Docker(https://docs.docker.com/desktop/)
+- direnv(https://github.com/direnv/direnv)
+
 ## Setup
 
 ### configure gcp project
@@ -7,6 +14,8 @@
 [GCP 公式ドキュメント](https://cloud.google.com/resource-manager/docs/creating-managing-projects?hl=ja) を参考にして GCP プロジェクトを作成し，ローカルで project id をセットしてください．
 
 ```shell
+$ gcloud auth login
+
 $ gcloud projects list
 PROJECT_ID                     NAME                    PROJECT_NUMBER
 lab-assignment-system-project  lab-assignment-system   31415926535897
@@ -48,10 +57,6 @@ emulator を stop & remove したい場合は以下のコマンドを実行し�
 
 ```shell
 $ make datastore-emulator/stop
-```
-
-```shell
-export GOOGLE_APPLICATION_CREDENTIALS="`pwd`/credentials.json"
 ```
 
 ## Run

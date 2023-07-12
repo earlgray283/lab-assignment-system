@@ -1,5 +1,10 @@
 # lab-assignment-system-frontend
 
+## Requirements
+
+- Node.js, yarn
+    - recommend: volta(https://docs.volta.sh/guide/getting-started)
+
 ## Development
 
 - `.env.localhost`
