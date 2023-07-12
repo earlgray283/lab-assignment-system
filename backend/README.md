@@ -72,7 +72,7 @@ $ go run ./cmd/server
 **csv format**
 
 ```csv
-12345678,4.0
+12345678,4.0,<admin|audience>
 ```
 
 ```shell
@@ -97,7 +97,6 @@ $ go run ./cmd/batch/load-labs <path-to-users-csv> -year <year>
 ### create-survey
 
 アンケートの集計期間をセットします。
-※ ヘッダはつけないでください
 
 ```shell
 $ go run ./cmd/batch/create-survey -startAt 2023-07-15T00:00:00 -endAt 2023-07-22T15:00:00 -year 2023
