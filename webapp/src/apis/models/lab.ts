@@ -8,6 +8,7 @@ export interface Lab {
   capacity: number;
   year: number;
   userGPAs: UserGPA[];
+  confirmed: boolean;
 }
 
 export interface UserGPA {

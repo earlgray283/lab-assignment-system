@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/csv"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -87,6 +88,10 @@ func parseLine(cols []string) (*entity.User, *datastore.Key, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	user, key := entity.NewUser(uid, gpa, *year, time.Now())
+	role, ok := entity.RoleByValue[cols[2]]
+	if !ok {
+		return nil, nil, errors.New("no such role")
+	}
+	user, key := entity.NewUser(uid, gpa, *year, role, time.Now())
 	return user, key, nil
 }

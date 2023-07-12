@@ -26,6 +26,8 @@ func NewServer(dsClient *datastore.Client, addr string, corsConfig *cors.Config)
 	usersController := i_http.NewUsersController(usersInteractor)
 	gradesInteractor := usecases.NewGradesInteractor(dsClient, logger)
 	gradesController := i_http.NewGradesController(gradesInteractor)
+	adminInteractor := usecases.NewAdminInteractor(dsClient, logger)
+	adminController := i_http.NewAdminController(adminInteractor)
 
 	r.POST("/auth/signin", authController.Login)
 	r.POST("/auth/signout", middleware.Authentication(dsClient), authController.Logout)
@@ -34,6 +36,7 @@ func NewServer(dsClient *datastore.Client, addr string, corsConfig *cors.Config)
 	r.PUT("/users/lab", middleware.Authentication(dsClient), usersController.UpdateUser)
 	r.GET("/users/me", middleware.Authentication(dsClient), usersController.GetUserMe)
 	r.GET("/grades", middleware.Authentication(dsClient), gradesController.ListGrades)
+	r.GET("/admin/final-decision", middleware.Authentication(dsClient), adminController.FinalDecision)
 
 	return &http.Server{
 		Addr:    addr,

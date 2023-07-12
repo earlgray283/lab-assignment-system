@@ -13,6 +13,7 @@ type Lab struct {
 	Capacity  int
 	Year      int
 	UserGPAs  []*UserGPA // the length must be ApplicantCount
+	Confirmed bool
 	CreatedAt time.Time
 	UpdatedAt *time.Time
 }

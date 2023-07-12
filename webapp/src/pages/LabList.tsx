@@ -93,10 +93,7 @@ const columns: GridColDef<Lab>[] = [
     align: 'center',
     headerAlign: 'center',
     renderCell: (params) => {
-      if (!params.row.userGPAs) {
-        return <div />;
-      }
-      return params.row.capacity == params.row.userGPAs.length && <CheckIcon />;
+      return params.row.confirmed && <CheckIcon />;
     },
   },
 ];
