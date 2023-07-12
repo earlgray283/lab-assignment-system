@@ -2,12 +2,16 @@ import { Alert, Stack } from '@mui/material';
 import { useContext, useEffect, useState } from 'react';
 import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-
 import { UserContext } from '../App';
 import GpaCard from '../components/cards/GpaCard';
 import { FullLayout } from '../components/Layout';
-import { Notification } from '../components/Notification';
 import LabCard from '../components/cards/LabCard';
+
+export interface Notification {
+  id: string;
+  severity: 'error' | 'warning';
+  message: React.ReactNode;
+}
 
 function Dashboard(): JSX.Element {
   const user = useContext(UserContext);

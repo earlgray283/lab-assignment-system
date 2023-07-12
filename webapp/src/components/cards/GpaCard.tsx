@@ -49,7 +49,9 @@ let gpas: number[] | undefined;
 function useGpas(year: number): number[] {
   if (gpas === undefined) {
     throw fetchGrades(year)
-      .then((data) => (gpas = data))
+      .then((data) => {
+        gpas = data;
+      })
       .catch(() => sleep(2000));
   }
   return gpas;
@@ -73,15 +75,6 @@ function GpaCard(props: { year: number }): JSX.Element {
     }
     setGpaClasses([...list]);
   }, [gpas]);
-  const data = {
-    labels,
-    datasets: [
-      {
-        data: gpaClasses,
-        backgroundColor: 'rgba(153, 183, 220, 0.6)',
-      },
-    ],
-  };
 
   if (!user) {
     return <div />;
@@ -94,7 +87,18 @@ function GpaCard(props: { year: number }): JSX.Element {
       </p>
       <Box display='flex' flexDirection='column' alignItems='center'>
         <Box width='50%' minWidth='300px'>
-          <Bar data={data} options={options} />
+          <Bar
+            data={{
+              labels,
+              datasets: [
+                {
+                  data: gpaClasses,
+                  backgroundColor: 'rgba(153, 183, 220, 0.6)',
+                },
+              ],
+            }}
+            options={options}
+          />
         </Box>
       </Box>
     </Box>

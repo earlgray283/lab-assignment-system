@@ -1,51 +1,24 @@
 import { Box, Divider, Grid, Stack, Typography, Tooltip } from '@mui/material';
 import React, { useContext, useEffect, useState } from 'react';
 import { fetchLabs } from '../../apis/labs';
-import { Lab, LabList } from '../../apis/models/lab';
-import { Doughnut } from 'react-chartjs-2';
+import { Lab } from '../../apis/models/lab';
 import { Chart as ChartJS, ArcElement, Legend } from 'chart.js';
 import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
 import { DisplayGpa } from '../util';
 import { UserContext } from '../../App';
 import { Link } from 'react-router-dom';
 import { cmpLessThan } from '../../libs/util';
-import { Notification } from '../Notification';
+import { Notification } from '../../pages/Dashboard';
 
 ChartJS.register(ArcElement, Legend);
 
-function calcMinGpa(lab: Lab): number {
-  let minUserGPA = undefined;
-  for (const userGPA of lab.userGPAs) {
-    if (minUserGPA === undefined) {
-      minUserGPA = userGPA;
-      continue;
-    }
-    if (minUserGPA.gpa > userGPA.gpa) {
-      minUserGPA = userGPA;
-    }
-  }
-  return minUserGPA?.gpa ?? -1;
-}
-
-function calcLabGpaAveg(lab: Lab): number {
-  let sum = 0;
-  for (const userGPA of lab.userGPAs) {
-    sum += userGPA.gpa;
-  }
-  return lab.userGPAs.length === 0 ? -1 : sum / lab.userGPAs.length;
-}
-
-function isAssignable(lab: Lab, userGpa: number): boolean {
-  const mingpa = calcMinGpa(lab);
-  return lab.userGPAs.length < lab.capacity || cmpLessThan(mingpa, userGpa);
-}
-
 function LabCard(props: {
-  year?: number;
+  year: number;
   pushNotification: (n: Notification) => void;
 }): JSX.Element {
-  const [labList, setLabList] = useState<LabList | undefined>(undefined);
+  const [labList, setLabList] = useState<(Lab | undefined)[] | undefined>(
+    undefined,
+  );
   const user = useContext(UserContext);
 
   useEffect(() => {
@@ -67,14 +40,30 @@ function LabCard(props: {
           </div>
         ),
       });
-      setLabList({ labs: [] });
+      setLabList([]);
       return;
     }
+
+    const labIDs = [wishLab];
+    const watchLab1 = localStorage.getItem('watchLab1');
+    if (watchLab1) {
+      labIDs.push(watchLab1);
+    }
+    const watchLab2 = localStorage.getItem('watchLab2');
+    if (watchLab2) {
+      labIDs.push(watchLab2);
+    }
+
     (async () => {
-      const labList2 = await fetchLabs(props.year ?? new Date().getFullYear(), [
-        wishLab,
-      ]);
-      setLabList(labList2);
+      const labList2 = await fetchLabs(props.year, labIDs);
+      const labs2: (Lab | undefined)[] = [];
+      for (const lab of labList2.labs) {
+        labs2.push(lab);
+      }
+      for (let i = labList2.labs.length; i < 3; i++) {
+        labs2.push(undefined);
+      }
+      setLabList([...labs2]);
     })();
   }, [user]);
 
@@ -94,13 +83,28 @@ function LabCard(props: {
         justifyContent='center'
         alignItems='center'
       >
-        {labList.labs.map((lab, i) => {
-          lab.userGPAs.sort((a, b) => b.gpa - a.gpa);
-          const mingpa = calcMinGpa(lab);
-          const gpaAveg = calcLabGpaAveg(lab);
-          const labMag = (lab.userGPAs.length / lab.capacity) * 100;
+        {labList.map((lab, i) => {
+          if (!lab) {
+            return (
+              <Box
+                key={i}
+                boxShadow={2}
+                margin='20px 10px 20px 10px'
+                padding='10px'
+                width='30%'
+                minWidth='300px'
+                height='250px'
+              ></Box>
+            );
+          }
 
-          if (i == 0 && !isAssignable(lab, user.gpa)) {
+          lab.userGPAs.sort((a, b) => b.gpa - a.gpa);
+          const borderLine = lab.userGPAs.at(lab.capacity - 1)?.gpa;
+          const assignable =
+            lab.userGPAs.length < lab.capacity ||
+            cmpLessThan(borderLine ?? 0, user.gpa);
+
+          if (i == 0 && !assignable) {
             props.pushNotification({
               id: 'no-assignable-lab',
               severity: 'error',
@@ -121,62 +125,49 @@ function LabCard(props: {
               padding='10px'
               width='30%'
               minWidth='300px'
+              height='250px'
             >
               <Typography variant='h5'>
                 {lab.name}{' '}
                 <Tooltip
-                  title={
-                    isAssignable(lab, user.gpa)
-                      ? '配属可能です'
-                      : '配属ができません'
-                  }
+                  title={assignable ? '配属可能です' : '配属ができません'}
                 >
-                  {isAssignable(lab, user.gpa) ? (
-                    <CheckIcon fontSize='small' sx={{ color: 'green' }} />
-                  ) : (
-                    <CloseIcon fontSize='small' sx={{ color: 'red' }} />
-                  )}
+                  <CheckIcon
+                    fontSize='small'
+                    sx={{ color: assignable ? 'green' : 'red' }}
+                  />
                 </Tooltip>
               </Typography>
+
               <Divider />
+
               <Box display='flex'>
                 <Stack marginTop='5px'>
-                  <Box>競争率: {<span>{labMag}</span>}%</Box>
                   <Box>定員: {lab.capacity}人</Box>
                   <Box>志望者数: {lab.userGPAs.length}人</Box>
-                  <Box>GPA(最小は上位{lab.capacity}名中)</Box>
-                  <Box marginLeft='10px'>
-                    {' '}
-                    - 平均: <DisplayGpa gpa={gpaAveg} />
+                  <Box>
+                    競争率:{' '}
+                    {<span>{(lab.userGPAs.length / lab.capacity) * 100}</span>}%
                   </Box>
+
+                  <Box>GPA</Box>
                   <Box marginLeft='10px'>
                     {' '}
-                    - 最大: <DisplayGpa gpa={lab.userGPAs.at(0)?.gpa ?? -1} />
+                    - 平均:{' '}
+                    <DisplayGpa
+                      gpa={
+                        lab.userGPAs.map((u) => u.gpa).reduce((p, c) => p + c) /
+                        lab.userGPAs.length
+                      }
+                    />
                   </Box>
+
                   <Box marginLeft='10px'>
                     {' '}
-                    - 最小: <DisplayGpa gpa={mingpa} />
+                    - ボーダーライン
+                    {borderLine ? <DisplayGpa gpa={borderLine} /> : 'BF'}
                   </Box>
                 </Stack>
-              </Box>
-              <Box display='flex' flexDirection='column' alignItems='center'>
-                <Box width='75%'>
-                  <Doughnut
-                    data={{
-                      labels: ['第1希望', '第2希望', '第3希望'],
-                      datasets: [
-                        {
-                          data: [lab.userGPAs.length, 0, 0],
-                          backgroundColor: [
-                            '#AFD7F7CC',
-                            '#84A4D4CC',
-                            '#222E80CC',
-                          ],
-                        },
-                      ],
-                    }}
-                  />
-                </Box>
               </Box>
             </Box>
           );

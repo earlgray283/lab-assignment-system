@@ -45,7 +45,7 @@ func (i *UsersInteractor) UpdateUser(ctx context.Context, user *entity.User, pay
 	// update labs
 	labKeys := make([]*datastore.Key, 0, 2)
 	if user.WishLab != nil {
-		labKeys = append(labKeys, entity.NewLabKey(payload.LabID, year))
+		labKeys = append(labKeys, entity.NewLabKey(*user.WishLab, year))
 	}
 	labKeys = append(labKeys, entity.NewLabKey(payload.LabID, year))
 	labs := make([]*entity.Lab, len(labKeys))
@@ -65,10 +65,22 @@ func (i *UsersInteractor) UpdateUser(ctx context.Context, user *entity.User, pay
 	if len(labs) == 2 {
 		oldLabKey, newLabKey = labKeys[0], labKeys[1]
 		oldLab, newLab = labs[0], labs[1]
+		log.Println("oldLab:", *oldLab)
 	} else {
 		newLabKey = labKeys[0]
 		newLab = labs[0]
 	}
+	log.Println("newLab:", *newLab)
+	if oldLabKey.Equal(newLabKey) {
+		return &models.User{
+			UID:          user.UID,
+			Gpa:          user.Gpa,
+			WishLab:      user.WishLab,
+			ConfirmedLab: user.ConfirmedLab,
+			Year:         user.Year,
+		}, nil
+	}
+
 	if oldLab != nil {
 		if err := updateOldLab(oldLab, entity.NewUserKey(user.UID), user.Gpa); err != nil {
 			i.logger.Println("!!!不整合発生!!!")
@@ -120,7 +132,7 @@ func updateOldLab(lab *entity.Lab, userKey *datastore.Key, gpa float64) error {
 		return userGPA.UserKey.Equal(userKey)
 	})
 	if !exist {
-		return errors.New("user not found")
+		return errors.New("mismatch: user not found")
 	}
 	lab.UserGPAs = append(lab.UserGPAs[:index], lab.UserGPAs[index+1:]...)
 	lab.UpdatedAt = lo.ToPtr(time.Now())
