@@ -13,18 +13,18 @@ import (
 )
 
 var (
-	year        = *flag.Int("year", time.Now().Year(), "year")
-	startAtText = *flag.String("startAt", "", "format: 2006-01-02T15:04:05")
-	endAtText   = *flag.String("endAt", "", "format: 2006-01-02T15:04:05")
+	year        = flag.Int("year", time.Now().Year(), "year")
+	startAtText = flag.String("startAt", "", "format: 2006-01-02T15:04:05")
+	endAtText   = flag.String("endAt", "", "format: 2006-01-02T15:04:05")
 )
 
 func main() {
 	flag.Parse()
-	startAt, err := time.Parse("2006-01-02T15:04:05", startAtText)
+	startAt, err := time.Parse("2006-01-02T15:04:05", *startAtText)
 	if err != nil {
 		log.Fatal(err)
 	}
-	endAt, err := time.Parse("2006-01-02T15:04:05", endAtText)
+	endAt, err := time.Parse("2006-01-02T15:04:05", *endAtText)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,7 +39,7 @@ func main() {
 	}
 	defer dc.Close()
 
-	survey, key := entity.NewSurvey(year, startAt, endAt, time.Now())
+	survey, key := entity.NewSurvey(*year, startAt, endAt, time.Now())
 	if _, err := dc.Put(context.Background(), key, survey); err != nil {
 		log.Fatal(err)
 	}
