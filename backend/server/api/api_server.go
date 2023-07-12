@@ -37,6 +37,7 @@ func NewServer(dsClient *datastore.Client, addr string, corsConfig *cors.Config)
 	r.GET("/users/me", middleware.Authentication(dsClient), usersController.GetUserMe)
 	r.GET("/grades", middleware.Authentication(dsClient), gradesController.ListGrades)
 	r.GET("/admin/final-decision", middleware.Authentication(dsClient), adminController.FinalDecision)
+	r.GET("/admin/csv", middleware.Authentication(dsClient), adminController.GetCSV)
 
 	return &http.Server{
 		Addr:    addr,

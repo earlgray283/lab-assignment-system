@@ -1,10 +1,16 @@
 package usecases
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
+	"io"
 	"lab-assignment-system-backend/server/domain/entity"
 	"lab-assignment-system-backend/server/domain/models"
+	"lab-assignment-system-backend/server/lib"
 	"log"
+	"net/http"
+	"strconv"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -99,6 +105,33 @@ func (i *AdminInteractor) FinalDecision(ctx context.Context, year int) (*models.
 			return k.Name
 		}),
 	}, nil
+}
+
+func (i *AdminInteractor) GetCSV(ctx context.Context, year int) (io.Reader, error) {
+	var survey entity.Survey
+	if err := i.dsClient.Get(ctx, entity.NewSurveyKey(year), &survey); err != nil {
+		return nil, lib.NewBadRequestError(err.Error())
+	}
+	if survey.FinalDecisionedAt == nil {
+		return nil, lib.NewError(http.StatusBadRequest, "FinalDecision を実行してください")
+	}
+
+	users := make([]*entity.User, 0)
+	if _, err := i.dsClient.GetAll(ctx, datastore.NewQuery(entity.KindUser).FilterField("Year", "=", year), &users); err != nil {
+		return nil, lib.NewInternalServerError(err.Error())
+	}
+	buf := &bytes.Buffer{}
+	w := csv.NewWriter(buf)
+	_ = w.Write([]string{"UID", "GPA", "確定済み研究室"})
+	for _, user := range users {
+		confirmedLab := ""
+		if user.ConfirmedLab != nil {
+			confirmedLab = *user.ConfirmedLab
+		}
+		_ = w.Write([]string{user.UID, strconv.FormatFloat(user.Gpa, 'f', -1, 64), confirmedLab})
+	}
+	w.Flush()
+	return buf, nil
 }
 
 // return a[:mid], a[mid:]

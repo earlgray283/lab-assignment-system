@@ -9,11 +9,12 @@ import (
 
 // 集計期間を定義する kind
 type Survey struct {
-	Year      int
-	StartAt   time.Time
-	EndAt     time.Time
-	CreatedAt time.Time
-	UpdatedAt *time.Time
+	Year              int
+	StartAt           time.Time
+	EndAt             time.Time
+	CreatedAt         time.Time
+	UpdatedAt         *time.Time
+	FinalDecisionedAt *time.Time
 }
 
 const KindSurvey = "survey"
