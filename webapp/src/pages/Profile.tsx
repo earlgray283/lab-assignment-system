@@ -60,7 +60,7 @@ function Profile(): JSX.Element {
         </Typography>
         <Stack spacing={2} width='90%' display='flex' flexDirection='column'>
           <TextField
-            defaultValue={wishLab ?? ''}
+            defaultValue={user.wishLab}
             select
             label='希望する研究室'
             onChange={(e) => setWishLab(e.target.value)}
@@ -82,7 +82,11 @@ function Profile(): JSX.Element {
               return;
             }
             try {
-              const user = await updateUserLab(wishLab);
+              const year = searchParams.get('year');
+              const user = await updateUserLab(
+                wishLab,
+                year ? Number(year) : undefined,
+              );
               console.log(user);
               setCurrentUser(user);
               setSuccessMessage('更新に成功しました');

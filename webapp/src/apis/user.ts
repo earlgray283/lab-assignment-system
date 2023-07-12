@@ -21,10 +21,14 @@ export async function fetchUser(): Promise<ApiUser> {
   }
 }
 
-export async function updateUserLab(labID: string): Promise<ApiUser> {
+export async function updateUserLab(
+  labID: string,
+  year?: number,
+): Promise<ApiUser> {
   try {
     const resp = await putJson<ApiUser>('/users/lab', {
       labID: labID,
+      year: year,
     });
     return resp.data;
   } catch (e: unknown) {

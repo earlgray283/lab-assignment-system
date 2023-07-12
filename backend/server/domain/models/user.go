@@ -1,7 +1,8 @@
 package models
 
 type UpdateUserPayload struct {
-	LabID string `json:"lab,omitempty"`
+	LabID string `json:"labID,omitempty"`
+	Year  *int   `json:"year"`
 }
 
 type UpdateUserResponse struct {

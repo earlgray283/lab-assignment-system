@@ -25,22 +25,29 @@ func NewUsersInteractor(dsClient *datastore.Client, logger *log.Logger) *UsersIn
 func (i *UsersInteractor) UpdateUser(ctx context.Context, user *entity.User, payload *models.UpdateUserPayload) (*models.User, error) {
 	now := time.Now()
 
+	year := user.Year
+	if payload.Year != nil {
+		year = *payload.Year
+	}
+	log.Println(payload.LabID, year)
+
 	// validation
 	var survey entity.Survey
-	if err := i.dsClient.Get(ctx, entity.NewSurveyKey(user.Year), &survey); err != nil {
-		i.logger.Println(err)
+	if err := i.dsClient.Get(ctx, entity.NewSurveyKey(year), &survey); err != nil {
+		i.logger.Println("survey:", err)
 		return nil, lib.NewInternalServerError(err.Error())
 	}
-	if survey.StartAt.Before(now) || survey.EndAt.After(now) {
+	log.Println(survey.StartAt.String(), survey.EndAt.String())
+	if now.Before(survey.StartAt) || now.After(survey.EndAt) {
 		return nil, lib.NewBadRequestError("現在は回答期間ではありません")
 	}
 
 	// update labs
 	labKeys := make([]*datastore.Key, 0, 2)
 	if user.WishLab != nil {
-		labKeys = append(labKeys, entity.NewLabKey(payload.LabID, user.Year))
+		labKeys = append(labKeys, entity.NewLabKey(payload.LabID, year))
 	}
-	labKeys = append(labKeys, entity.NewLabKey(payload.LabID, user.Year))
+	labKeys = append(labKeys, entity.NewLabKey(payload.LabID, year))
 	labs := make([]*entity.Lab, len(labKeys))
 	if err := i.dsClient.GetMulti(ctx, labKeys, labs); err != nil {
 		if merr, ok := err.(datastore.MultiError); ok {
@@ -53,11 +60,13 @@ func (i *UsersInteractor) UpdateUser(ctx context.Context, user *entity.User, pay
 		i.logger.Println(err)
 		return nil, lib.NewInternalServerError(err.Error())
 	}
-	oldLabKey, newLabKey := labKeys[0], labKeys[1]
+	var oldLabKey, newLabKey *datastore.Key
 	var oldLab, newLab *entity.Lab
 	if len(labs) == 2 {
+		oldLabKey, newLabKey = labKeys[0], labKeys[1]
 		oldLab, newLab = labs[0], labs[1]
 	} else {
+		newLabKey = labKeys[0]
 		newLab = labs[0]
 	}
 	if oldLab != nil {
@@ -76,7 +85,9 @@ func (i *UsersInteractor) UpdateUser(ctx context.Context, user *entity.User, pay
 	if _, err := i.dsClient.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 		mutations := make([]*datastore.Mutation, 0)
 		mutations = append(mutations, datastore.NewUpdate(userKey, user))
-		mutations = append(mutations, datastore.NewUpdate(oldLabKey, oldLab))
+		if oldLabKey != nil {
+			mutations = append(mutations, datastore.NewUpdate(oldLabKey, oldLab))
+		}
 		mutations = append(mutations, datastore.NewUpdate(newLabKey, newLab))
 		if _, err := tx.Mutate(mutations...); err != nil {
 			return err
