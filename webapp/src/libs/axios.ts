@@ -27,7 +27,7 @@ export const http = axios.create({
 export async function postJson<
   T = unknown,
   R = AxiosResponse<T, unknown>,
-  D = unknown
+  D = unknown,
 >(uri: string, data: D): Promise<R> {
   const resp = http.post<T, R, D>(uri, data, {
     headers: {
@@ -40,7 +40,7 @@ export async function postJson<
 export async function putJson<
   T = unknown,
   R = AxiosResponse<T, unknown>,
-  D = unknown
+  D = unknown,
 >(uri: string, data: D): Promise<R> {
   const resp = http.put<T, R, D>(uri, data, {
     headers: {

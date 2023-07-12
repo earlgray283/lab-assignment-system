@@ -4,14 +4,14 @@ import { http } from '../libs/axios';
 import { ApiError } from './models/api-error';
 
 export async function fetchLabs(
+  year: number,
   labIds?: string[],
-  optFields?: string[]
 ): Promise<LabList> {
   try {
     const resp = await http.get<LabList>('/labs', {
       params: {
+        year: year,
         labIds: labIds && labIds.join('+'),
-        optFields: optFields && optFields.join('+'),
       },
     });
     return resp.data;

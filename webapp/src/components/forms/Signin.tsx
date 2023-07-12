@@ -14,11 +14,7 @@ export function SigninForm(props: {
   const { control, handleSubmit } = useForm<SigninFormInput>();
 
   return (
-    <Stack
-      spacing={2}
-      component='form'
-      onSubmit={handleSubmit<SigninFormInput>(props.onSubmit)}
-    >
+    <Stack spacing={2} component='form' onSubmit={handleSubmit(props.onSubmit)}>
       <Typography variant='h4'>ログイン</Typography>
 
       {props.errorMessage && (

@@ -1,4 +1,4 @@
-FROM golang:1.18 AS build
+FROM golang:1.20 AS build
 
 WORKDIR /work
 
@@ -9,7 +9,7 @@ COPY . .
 RUN \
     GOOS=linux \
     GOARCH=amd64 \
-    go build -mod=readonly -o app
+    go build -mod=readonly -o app ./cmd/server
 
 FROM --platform=linux/amd64 ubuntu:22.04
 

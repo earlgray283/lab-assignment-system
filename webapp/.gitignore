@@ -25,6 +25,7 @@ dist-ssr
 
 .eslintcache
 
-.firebaserc
-firebase.json
 .firebase
+
+.yarn/cache
+.yarn/install-state.gz

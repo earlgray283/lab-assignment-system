@@ -1,11 +1,11 @@
 import { ApiError } from './models/api-error';
 import { AxiosError } from 'axios';
 import { http, putJson } from '../libs/axios';
-import { ApiUser, UserLab } from './models/user';
+import { ApiUser } from './models/user';
 
 export async function fetchUser(): Promise<ApiUser> {
   try {
-    const resp = await http.get<ApiUser>('/user');
+    const resp = await http.get<ApiUser>('/users/me');
     return resp.data;
   } catch (e: unknown) {
     if (e instanceof AxiosError) {
@@ -21,9 +21,15 @@ export async function fetchUser(): Promise<ApiUser> {
   }
 }
 
-export async function updateUserLab(user: UserLab): Promise<ApiUser> {
+export async function updateUserLab(
+  labID: string,
+  year?: number,
+): Promise<ApiUser> {
   try {
-    const resp = await putJson<ApiUser>('/user/lab', user);
+    const resp = await putJson<ApiUser>('/users/lab', {
+      labID: labID,
+      year: year,
+    });
     return resp.data;
   } catch (e: unknown) {
     if (e instanceof AxiosError) {

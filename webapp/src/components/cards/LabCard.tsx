@@ -1,83 +1,77 @@
 import { Box, Divider, Grid, Stack, Typography, Tooltip } from '@mui/material';
 import React, { useContext, useEffect, useState } from 'react';
 import { fetchLabs } from '../../apis/labs';
-import { Lab, LabList } from '../../apis/models/lab';
-import { Doughnut } from 'react-chartjs-2';
+import { Lab } from '../../apis/models/lab';
 import { Chart as ChartJS, ArcElement, Legend } from 'chart.js';
 import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
 import { DisplayGpa } from '../util';
 import { UserContext } from '../../App';
-import {
-  NotificationsContext,
-  NotificationsDispatchContext,
-} from '../../pages/Dashboard';
 import { Link } from 'react-router-dom';
 import { cmpLessThan } from '../../libs/util';
+import { Notification } from '../../pages/Dashboard';
 
 ChartJS.register(ArcElement, Legend);
 
-function calcMinGpa(lab: Lab): number {
-  if (!lab.grades) {
-    return -1;
-  }
-  return (
-    lab.grades.gpas1.at(lab.capacity - 1) ??
-    lab.grades.gpas1.at(lab.grades.gpas1.length - 1) ??
-    -1
+function LabCard(props: {
+  year: number;
+  pushNotification: (n: Notification) => void;
+}): JSX.Element {
+  const [labList, setLabList] = useState<(Lab | undefined)[] | undefined>(
+    undefined,
   );
-}
-
-function calcLabGpaAveg(lab: Lab): number {
-  if (!lab.grades) {
-    return -1;
-  }
-  return lab.grades.gpas1.length != 0
-    ? lab.grades.gpas1.reduce((prev, cur) => prev + cur) /
-        lab.grades.gpas1.length
-    : -1;
-}
-
-function isAssignable(lab: Lab, userGpa: number): boolean {
-  if (!lab.grades) {
-    return true;
-  }
-  const mingpa = calcMinGpa(lab);
-  return lab.grades.gpas1.length < lab.capacity || cmpLessThan(mingpa, userGpa);
-}
-
-function LabCard(props: { labIds?: string[]; gpa: number }): JSX.Element {
-  const [labList, setLabList] = useState<LabList | undefined>(undefined);
-  const notifications = useContext(NotificationsContext);
-  const setNotifications = useContext(NotificationsDispatchContext);
   const user = useContext(UserContext);
-  useEffect(() => {
-    (async () => {
-      const labList2 = await fetchLabs(props.labIds, ['grade']);
-      setLabList(labList2);
-    })();
-  }, []);
 
-  if (!labList || user === undefined) {
-    return <div />;
-  }
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+    const wishLab = user.wishLab;
+    if (!wishLab) {
+      // MEMO: useEffect の中で親の state をいじらないと
+      // setState-in-render が起きてしまう
+      props.pushNotification({
+        id: 'no-wish-lab',
+        severity: 'error',
+        message: (
+          <div>
+            研究室アンケートに回答されていません。
+            <Link to='/profile'>研究室アンケートページ</Link>
+            から回答を行って下さい。
+          </div>
+        ),
+      });
+      setLabList([]);
+      return;
+    }
+
+    const labIDs = [wishLab];
+    const watchLab1 = localStorage.getItem('watchLab1');
+    if (watchLab1) {
+      labIDs.push(watchLab1);
+    }
+    const watchLab2 = localStorage.getItem('watchLab2');
+    if (watchLab2) {
+      labIDs.push(watchLab2);
+    }
+
+    (async () => {
+      const labList2 = await fetchLabs(props.year, labIDs);
+      const labs2: (Lab | undefined)[] = [];
+      for (const lab of labList2.labs) {
+        labs2.push(lab);
+      }
+      for (let i = labList2.labs.length; i < 3; i++) {
+        labs2.push(undefined);
+      }
+      setLabList([...labs2]);
+    })();
+  }, [user]);
+
   if (!user) {
     return <div>unauthorized</div>;
   }
-  if (!user.lab1) {
-    console.log('check');
-    const newNotifications = [...notifications];
-    newNotifications.push({
-      severity: 'error',
-      message: (
-        <div>
-          研究室アンケートに回答されていません。
-          <Link to='/profile'>研究室アンケートページ</Link>
-          から回答を行って下さい。
-        </div>
-      ),
-    });
-    setNotifications([...newNotifications]);
+  if (!labList || user === undefined) {
+    return <div />;
   }
 
   return (
@@ -89,28 +83,38 @@ function LabCard(props: { labIds?: string[]; gpa: number }): JSX.Element {
         justifyContent='center'
         alignItems='center'
       >
-        {labList.labs.map((lab, i) => {
-          if (!lab.grades) {
-            // unreachable
-            return <div />;
+        {labList.map((lab, i) => {
+          if (!lab) {
+            return (
+              <Box
+                key={i}
+                boxShadow={2}
+                margin='20px 10px 20px 10px'
+                padding='10px'
+                width='30%'
+                minWidth='300px'
+                height='250px'
+              ></Box>
+            );
           }
 
-          const mingpa = calcMinGpa(lab);
-          const gpaAveg = calcLabGpaAveg(lab);
-          const labMag = (lab.firstChoice / lab.capacity) * 100;
+          lab.userGPAs.sort((a, b) => b.gpa - a.gpa);
+          const borderLine = lab.userGPAs.at(lab.capacity - 1)?.gpa;
+          const assignable =
+            lab.userGPAs.length < lab.capacity ||
+            cmpLessThan(borderLine ?? 0, user.gpa);
 
-          if (i == 0 && !isAssignable(lab, user.gpa)) {
-            const newNotifications = [...notifications];
-            newNotifications.push({
+          if (i == 0 && !assignable) {
+            props.pushNotification({
+              id: 'no-assignable-lab',
               severity: 'error',
               message: (
                 <div>
-                  第1希望の研究室({lab.name}
-                  )への配属ができません。第一希望の研究室を変更してください。
+                  希望の研究室({lab.name}
+                  )への配属ができません。変更してください。
                 </div>
               ),
             });
-            setNotifications([...newNotifications]);
           }
 
           return (
@@ -121,66 +125,49 @@ function LabCard(props: { labIds?: string[]; gpa: number }): JSX.Element {
               padding='10px'
               width='30%'
               minWidth='300px'
+              height='250px'
             >
               <Typography variant='h5'>
                 {lab.name}{' '}
                 <Tooltip
-                  title={
-                    isAssignable(lab, user.gpa)
-                      ? '配属可能です'
-                      : '配属ができません'
-                  }
+                  title={assignable ? '配属可能です' : '配属ができません'}
                 >
-                  {isAssignable(lab, user.gpa) ? (
-                    <CheckIcon fontSize='small' sx={{ color: 'green' }} />
-                  ) : (
-                    <CloseIcon fontSize='small' sx={{ color: 'red' }} />
-                  )}
+                  <CheckIcon
+                    fontSize='small'
+                    sx={{ color: assignable ? 'green' : 'red' }}
+                  />
                 </Tooltip>
               </Typography>
+
               <Divider />
+
               <Box display='flex'>
                 <Stack marginTop='5px'>
-                  <Box>競争率: {<span>{labMag}</span>}%</Box>
                   <Box>定員: {lab.capacity}人</Box>
-                  <Box>志望者数: {lab.firstChoice}人</Box>
-                  <Box>GPA(最小は上位{lab.capacity}名中)</Box>
-                  <Box marginLeft='10px'>
-                    {' '}
-                    - 平均: <DisplayGpa gpa={gpaAveg} />
+                  <Box>志望者数: {lab.userGPAs.length}人</Box>
+                  <Box>
+                    競争率:{' '}
+                    {<span>{(lab.userGPAs.length / lab.capacity) * 100}</span>}%
                   </Box>
+
+                  <Box>GPA</Box>
                   <Box marginLeft='10px'>
                     {' '}
-                    - 最大: <DisplayGpa gpa={lab.grades.gpas1.at(0) ?? -1} />
+                    - 平均:{' '}
+                    <DisplayGpa
+                      gpa={
+                        lab.userGPAs.map((u) => u.gpa).reduce((p, c) => p + c) /
+                        lab.userGPAs.length
+                      }
+                    />
                   </Box>
+
                   <Box marginLeft='10px'>
                     {' '}
-                    - 最小: <DisplayGpa gpa={mingpa} />
+                    - ボーダーライン
+                    {borderLine ? <DisplayGpa gpa={borderLine} /> : 'BF'}
                   </Box>
                 </Stack>
-              </Box>
-              <Box display='flex' flexDirection='column' alignItems='center'>
-                <Box width='75%'>
-                  <Doughnut
-                    data={{
-                      labels: ['第1希望', '第2希望', '第3希望'],
-                      datasets: [
-                        {
-                          data: [
-                            lab.firstChoice,
-                            lab.secondChoice,
-                            lab.thirdChoice,
-                          ],
-                          backgroundColor: [
-                            '#AFD7F7CC',
-                            '#84A4D4CC',
-                            '#222E80CC',
-                          ],
-                        },
-                      ],
-                    }}
-                  />
-                </Box>
               </Box>
             </Box>
           );

@@ -1,8 +1,8 @@
-import { Typography } from '@mui/material';
+import { MenuItem, Select, Typography } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import { fetchLabs } from '../apis/labs';
-import { LabList, Lab } from '../apis/models/lab';
+import { Lab } from '../apis/models/lab';
 import { DefaultLayout } from '../components/Layout';
 import { DisplayGpa } from '../components/util';
 import CheckIcon from '@mui/icons-material/Check';
@@ -28,6 +28,12 @@ const columns: GridColDef<Lab>[] = [
     width: 80,
     align: 'center',
     headerAlign: 'center',
+    valueGetter: (params) => {
+      if (!params.row.userGPAs) {
+        return 0;
+      }
+      return params.row.userGPAs.length;
+    },
   },
   {
     field: 'mag',
@@ -36,22 +42,19 @@ const columns: GridColDef<Lab>[] = [
     align: 'center',
     headerAlign: 'center',
     valueGetter: (params) => {
-      if (!params.row.grades) {
-        return -1;
+      if (!params.row.userGPAs) {
+        return 0;
       }
-      const gpas = params.row.grades.gpas1;
-      return (gpas.length / params.row.capacity) * 100;
+      return (params.row.userGPAs.length / params.row.capacity) * 100;
     },
     renderCell: (params) => {
-      if (!params.row.grades) {
-        return -1;
+      let mag = 0;
+      if (params.row.userGPAs) {
+        mag = Math.round(
+          (params.row.userGPAs.length / params.row.capacity) * 100,
+        );
       }
-      const gpas = params.row.grades.gpas1;
-      return (
-        <span>
-          {Math.round((gpas.length / params.row.capacity) * 10000) / 100}%
-        </span>
-      );
+      return <span>{mag}%</span>;
     },
   },
   {
@@ -61,32 +64,26 @@ const columns: GridColDef<Lab>[] = [
     align: 'center',
     headerAlign: 'center',
     valueGetter: (params) => {
-      if (!params.row.grades) {
+      if (!params.row.userGPAs) {
         return -1;
       }
-      const gpas = params.row.grades.gpas1;
-      gpas.sort((a, b) => b - a);
+      params.row.userGPAs.sort((a, b) => b.gpa - a.gpa);
       return (
-        gpas.at(params.row.capacity - 1) ??
-        gpas.at(params.row.grades.gpas1.length - 1) ??
+        params.row.userGPAs.at(params.row.capacity - 1) ??
+        params.row.userGPAs.at(params.row.userGPAs.length - 1) ??
         -1
       );
     },
     renderCell: (params) => {
-      if (!params.row.grades) {
-        return -1;
+      let gpa = -1;
+      if (params.row.userGPAs) {
+        params.row.userGPAs.sort((a, b) => b.gpa - a.gpa);
+        gpa =
+          params.row.userGPAs.at(params.row.capacity - 1)?.gpa ??
+          params.row.userGPAs.at(params.row.userGPAs.length - 1)?.gpa ??
+          -1;
       }
-      const gpas = params.row.grades.gpas1;
-      gpas.sort((a, b) => b - a);
-      return (
-        <DisplayGpa
-          gpa={
-            gpas.at(params.row.capacity - 1) ??
-            gpas.at(params.row.grades.gpas1.length - 1) ??
-            -1
-          }
-        />
-      );
+      return <DisplayGpa gpa={gpa} />;
     },
   },
   {
@@ -95,30 +92,37 @@ const columns: GridColDef<Lab>[] = [
     width: 80,
     align: 'center',
     headerAlign: 'center',
-    renderCell: (params) =>
-      params.row.capacity == params.row.confirmedNumber && <CheckIcon />,
+    renderCell: (params) => {
+      return params.row.confirmed && <CheckIcon />;
+    },
   },
 ];
 
 function LabListPage(): JSX.Element {
-  const [labList, setLabList] = useState<LabList | undefined>(undefined);
+  const [labList, setLabList] = useState<Lab[]>([]);
+  const [year, setYear] = useState(new Date().getFullYear());
   useEffect(() => {
     (async () => {
-      const labList2 = await fetchLabs(undefined, ['grade']);
-      setLabList(labList2);
+      const labList2 = await fetchLabs(year);
+      setLabList(labList2.labs ?? []);
     })();
-  }, []);
-
-  if (!labList) {
-    return <div />;
-  }
+  }, [year]);
 
   return (
     <DefaultLayout>
       <Typography variant='h4'>研究室一覧</Typography>
 
+      <Select
+        value={year}
+        onChange={(e) => setYear(e.target.value as number)}
+        sx={{ marginY: 2 }}
+      >
+        <MenuItem value={2023}>2023年</MenuItem>
+        <MenuItem value={2022}>2022年</MenuItem>
+      </Select>
+
       <DataGrid
-        rows={labList.labs}
+        rows={labList}
         columns={columns}
         sx={{ height: 800, width: '100%' }}
       />

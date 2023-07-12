@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "lab-assignment-system-test"
+  },
+  "targets": {
+    "lab-assignment-system-project": {
+      "hosting": {
+        "prod": [
+          "lab-assignment-system-project"
+        ],
+        "test": [
+          "lab-assignment-system-test"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

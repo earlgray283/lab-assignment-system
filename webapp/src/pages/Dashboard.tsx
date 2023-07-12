@@ -1,63 +1,72 @@
 import { Alert, Stack } from '@mui/material';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { UserContext } from '../App';
 import GpaCard from '../components/cards/GpaCard';
 import { FullLayout } from '../components/Layout';
-import { Notification } from '../components/Notification';
 import LabCard from '../components/cards/LabCard';
 
-export const NotificationsContext = createContext<Notification[]>([]);
-export const NotificationsDispatchContext = createContext<
-  React.Dispatch<React.SetStateAction<Notification[]>>
->(() => undefined);
+export interface Notification {
+  id: string;
+  severity: 'error' | 'warning';
+  message: React.ReactNode;
+}
 
 function Dashboard(): JSX.Element {
   const user = useContext(UserContext);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [labIds, setLabIds] = useState<string[] | null | undefined>(undefined);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
   useEffect(() => {
     if (user === null) {
       navigate('/auth/signin');
-    }
-    if (user) {
-      if (user.lab1 && user.lab2 && user.lab3) {
-        setLabIds([user.lab1, user.lab2, user.lab3]);
-      } else {
-        setLabIds(null);
-      }
+      return;
     }
   }, [user]);
 
   if (!user) {
     return <div />; // /auth/signin にリダイレクトされることが保証される
   }
-  if (labIds === undefined) {
-    return <div />;
-  }
 
   return (
     <FullLayout>
-      <NotificationsDispatchContext.Provider value={setNotifications}>
-        <Stack spacing={2}>
-          {user.confirmedLab && (
-            <Alert severity='success'>
-              おめでとうございます。あなたの配属先が確定しました。
-            </Alert>
-          )}
-          {notifications.map((notification, i) => (
-            <Alert key={i} severity={notification.severity}>
-              {notification.message}
-            </Alert>
-          ))}
+      <Stack spacing={2}>
+        {user.confirmedLab && (
+          <Alert severity='success'>
+            おめでとうございます。あなたの配属先が確定しました。
+          </Alert>
+        )}
+        {notifications.map((notification, i) => (
+          <Alert key={i} severity={notification.severity}>
+            {notification.message}
+          </Alert>
+        ))}
 
-          {user.gpa && <GpaCard gpa={user.gpa} />}
-          {<LabCard labIds={labIds ?? undefined} gpa={user.gpa} />}
-        </Stack>
-      </NotificationsDispatchContext.Provider>
+        {user.gpa && (
+          <GpaCard
+            year={
+              searchParams.get('year')
+                ? Number(searchParams.get('year'))
+                : user.year
+            }
+          />
+        )}
+        <LabCard
+          year={
+            searchParams.get('year')
+              ? Number(searchParams.get('year'))
+              : user.year
+          }
+          pushNotification={(n) => {
+            if (notifications.find((x) => x.id === n.id)) {
+              return;
+            }
+            setNotifications([...notifications, n]);
+          }}
+        />
+      </Stack>
     </FullLayout>
   );
 }

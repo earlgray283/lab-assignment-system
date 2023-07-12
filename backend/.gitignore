@@ -1,2 +1,4 @@
 credentials.json
 .env
+.datastore-exports
+*.csv
