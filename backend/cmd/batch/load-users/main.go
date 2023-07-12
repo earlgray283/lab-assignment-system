@@ -16,6 +16,8 @@ import (
 	"cloud.google.com/go/datastore"
 )
 
+var year = *flag.Int("year", time.Now().Year(), "year")
+
 func main() {
 	flag.Parse()
 	ctx := context.Background()
@@ -85,14 +87,6 @@ func parseLine(cols []string) (*entity.User, *datastore.Key, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	year, err := strconv.ParseInt(strings.TrimSpace(cols[2]), 10, 64)
-	if err != nil {
-		return nil, nil, err
-	}
-	return &entity.User{
-		UID:       uid,
-		Gpa:       gpa,
-		Year:      int(year),
-		CreatedAt: time.Now(),
-	}, entity.NewUserKey(uid), nil
+	user, key := entity.NewUser(uid, gpa, year, time.Now())
+	return user, key, nil
 }

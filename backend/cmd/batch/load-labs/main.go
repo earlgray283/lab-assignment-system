@@ -14,6 +14,8 @@ import (
 	"cloud.google.com/go/datastore"
 )
 
+var year = flag.Int("year", time.Now().Year(), "year")
+
 func main() {
 	flag.Parse()
 
@@ -23,7 +25,8 @@ func main() {
 	}
 	csvPath := flag.Arg(0)
 	if csvPath == "" {
-		log.Fatal("please specify csv location")
+		flag.Usage()
+		return
 	}
 
 	dc, err := datastore.NewClient(context.Background(), projectID)
@@ -52,18 +55,14 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		year, err := strconv.Atoi(records[3])
-		if err != nil {
-			log.Fatal(err)
-		}
 		lab := &entity.Lab{
 			ID:        records[0],
 			Name:      records[1],
 			Capacity:  capacity,
-			Year:      year,
+			Year:      *year,
 			CreatedAt: time.Now(),
 		}
-		mutations = append(mutations, datastore.NewInsert(entity.NewLabKey(lab.ID, year), lab))
+		mutations = append(mutations, datastore.NewUpsert(entity.NewLabKey(lab.ID, *year), lab))
 	}
 	if _, err := dc.Mutate(context.Background(), mutations...); err != nil {
 		log.Fatal(err)

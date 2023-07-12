@@ -76,7 +76,7 @@ $ go run ./cmd/server
 ```
 
 ```shell
-$ go run ./cmd/batch/load-users <path-to-users-csv>
+$ go run ./cmd/batch/load-users <path-to-users-csv> -year <year>
 ```
 
 ### load labs
@@ -87,9 +87,18 @@ $ go run ./cmd/batch/load-users <path-to-users-csv>
 **csv format**
 
 ```csv
-szpp,SZPP研究室,3776,2023
+szpp,SZPP研究室,3776
 ```
 
 ```shell
-$ go run ./cmd/batch/load-labs <path-to-users-csv>
+$ go run ./cmd/batch/load-labs <path-to-users-csv> -year <year>
+```
+
+### create-survey
+
+アンケートの集計期間をセットします。
+※ ヘッダはつけないでください
+
+```shell
+$ go run ./cmd/batch/create-survey -startAt 2023-07-15T00:00:00 -endAt 2023-07-22T15:00:00 -year 2023
 ```
