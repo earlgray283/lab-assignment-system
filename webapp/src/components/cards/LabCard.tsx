@@ -1,7 +1,7 @@
 import { Box, Divider, Grid, Stack, Typography, Tooltip } from '@mui/material';
 import React, { useContext, useEffect, useState } from 'react';
 import { fetchLabs } from '../../apis/labs';
-import { Lab } from '../../apis/models/lab';
+import { Lab, UserGPA } from '../../apis/models/lab';
 import { Chart as ChartJS, ArcElement, Legend } from 'chart.js';
 import CheckIcon from '@mui/icons-material/Check';
 import { DisplayGpa } from '../util';
@@ -97,11 +97,17 @@ function LabCard(props: {
               ></Box>
             );
           }
+          
+          if (lab.userGPAs == null) {
+            lab.userGPAs = [] as UserGPA[];
+          }
+          const userGPAsLength = lab.userGPAs.length;
+          const averageGPA = userGPAsLength === 0 ? 0 : lab.userGPAs.map((u) => u.gpa).reduce((p, c) => p + c, 0) / userGPAsLength;
 
           lab.userGPAs.sort((a, b) => b.gpa - a.gpa);
           const borderLine = lab.userGPAs.at(lab.capacity - 1)?.gpa;
-          const assignable =
-            lab.userGPAs.length < lab.capacity ||
+          const assignable = 
+            userGPAsLength < lab.capacity ||
             cmpLessThan(borderLine ?? 0, user.gpa);
 
           if (i == 0 && !assignable) {
@@ -144,10 +150,10 @@ function LabCard(props: {
               <Box display='flex'>
                 <Stack marginTop='5px'>
                   <Box>定員: {lab.capacity}人</Box>
-                  <Box>志望者数: {lab.userGPAs.length}人</Box>
+                  <Box>志望者数: {userGPAsLength}人</Box>
                   <Box>
                     競争率:{' '}
-                    {<span>{(lab.userGPAs.length / lab.capacity) * 100}</span>}%
+                    {<span>{(userGPAsLength / lab.capacity) * 100}</span>}%
                   </Box>
 
                   <Box>GPA</Box>
@@ -156,8 +162,7 @@ function LabCard(props: {
                     - 平均:{' '}
                     <DisplayGpa
                       gpa={
-                        lab.userGPAs.map((u) => u.gpa).reduce((p, c) => p + c) /
-                        lab.userGPAs.length
+                        averageGPA
                       }
                     />
                   </Box>
