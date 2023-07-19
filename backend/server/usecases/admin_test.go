@@ -4,6 +4,7 @@ import (
 	"context"
 	"lab-assignment-system-backend/server/domain/entity"
 	"lab-assignment-system-backend/server/domain/models"
+	"lab-assignment-system-backend/server/lib"
 	"lab-assignment-system-backend/server/lib/testutil"
 	"log"
 	"testing"
@@ -26,7 +27,7 @@ func Test_FinalDecision(t *testing.T) {
 	ohkilab := createLab(t, dsClient, "ohkilab", 2, 2023)
 	ahkilab := createLab(t, dsClient, "ahkilab", 2, 2023)
 	_, _, _ = uhkilab, ohkilab, ahkilab
-	survey, surveyKey := entity.NewSurvey(2023, ymd(2023, 1, 1), ymd(2023, 12, 31), time.Now())
+	survey, surveyKey := entity.NewSurvey(2023, lib.YMD(2023, 1, 1), lib.YMD(2023, 12, 31), time.Now())
 	_, err := dsClient.Put(ctx, surveyKey, survey)
 	require.NoError(t, err)
 
@@ -119,10 +120,6 @@ func Test_FinalDecision(t *testing.T) {
 			test.assert(t, resp)
 		})
 	}
-}
-
-func ymd(y, m, d int) time.Time {
-	return time.Date(y, time.Month(m), d, 0, 0, 0, 0, time.Local)
 }
 
 func createLab(t *testing.T, dsClient *datastore.Client, id string, capacity, year int) *entity.Lab {
