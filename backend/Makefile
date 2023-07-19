@@ -28,3 +28,21 @@ datastore-emulator/import:
 .PHONY: datastore-emulator/show-port
 datastore-emulator/show-port:
 	@echo ${DATASTORE_EMULATOR_CONTAINER_PORT}
+
+.PHONY: test
+test:
+	@docker run -d \
+		-e CLOUDSDK_CONFIG="/config/gcloud" \
+		-e DATASTORE_PROJECT_ID="lab-assignment-system-test" \
+		-p 32932 \
+		-v "${HOME}/.config/gcloud":"/config/gcloud" \
+		--name lab-assignment-system_datastore-emulator_test \
+		google/cloud-sdk:emulators \
+		gcloud beta emulators datastore start \
+			--use-firestore-in-datastore-mode \
+			--host-port="0.0.0.0:32932" \
+			--no-store-on-disk
+	@DATASTORE_EMULATOR_CONTAINER_PORT=$(docker port lab-assignment-system_datastore-emulator_test  | grep "32932/tcp" | awk -F ' -> ' '{print $$2}' | awk -F ':' '{print $$2}') \
+		DATASTORE_EMULATOR_HOST="0.0.0.0:${DATASTORE_EMULATOR_CONTAINER_PORT}" \
+		go test -v ./... \
+		; docker rm -f lab-assignment-system_datastore-emulator_test

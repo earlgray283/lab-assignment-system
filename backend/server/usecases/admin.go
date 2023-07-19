@@ -27,67 +27,72 @@ func NewAdminInteractor(dsClient *datastore.Client, logger *log.Logger) *AdminIn
 	return &AdminInteractor{dsClient, logger}
 }
 
-func (i *AdminInteractor) FinalDecision(ctx context.Context, year int) (*models.FinalDicisionResponse, error) {
+func (i *AdminInteractor) FinalDecision(ctx context.Context, year int) (*models.FinalDecisionResponse, error) {
 	labs := make([]*entity.Lab, 0)
-
 	labKeys, err := i.dsClient.GetAll(ctx, datastore.NewQuery(entity.KindLab).FilterField("Year", "=", year), &labs)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	labByKey := map[string]*entity.Lab{}
+	labByKey := make(map[string]*entity.Lab, len(labs))
 	for i, lab := range labs {
-		labByKey[labKeys[i].Name] = lab
+		labByKey[labKeys[i].Encode()] = lab
 	}
 
-	uncertainUsers := make([]*datastore.Key, 0)
-	labByUserKey := make(map[string]*entity.Lab)
-	for _, lab := range labs {
-		slices.SortFunc(lab.UserGPAs, func(a, b *entity.UserGPA) bool {
-			// TODO: GPA が小数点かつそれなりに unique でないと大変なことになる
-			return a.GPA > b.GPA
-		})
-		okList, ngList := splitSlice(lab.UserGPAs, lab.Capacity)
-		for _, userGPA := range okList {
-			labByUserKey[userGPA.UserKey.Name] = lab
+	users := make([]*entity.User, 0)
+	if _, err := i.dsClient.GetAll(ctx, datastore.NewQuery(entity.KindUser).FilterField("Year", "=", year), &users); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	usersByLabKey := make(map[string][]*entity.User)
+	for _, user := range users {
+		if user.WishLab == nil {
+			continue
 		}
-		for _, userGPA := range ngList {
-			uncertainUsers = append(uncertainUsers, userGPA.UserKey)
+		labKeyStr := entity.NewLabKey(*user.WishLab, year).Encode()
+		if _, ok := usersByLabKey[labKeyStr]; !ok {
+			usersByLabKey[labKeyStr] = make([]*entity.User, 0)
 		}
+		usersByLabKey[labKeyStr] = append(usersByLabKey[labKeyStr], user)
 	}
 
+	updatedUsers := make([]*entity.User, 0, len(users))
+	var message string = "すべての学生の登録が正常に完了しました。"
 	if _, err := i.dsClient.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 		mutations := make([]*datastore.Mutation, 0)
 
-		users := make([]*entity.User, len(labByUserKey))
-		userKeys := lo.Map(lo.Keys(labByUserKey), func(k string, _ int) *datastore.Key {
-			return datastore.NameKey(entity.KindUser, k, nil)
-		})
-		if err := tx.GetMulti(userKeys, users); err != nil {
-			return err
-		}
-
-		// user の ConfirmedLab を更新
-		userGPAsByLab := make(map[string][]*entity.UserGPA)
-		for i, user := range users {
-			user.ConfirmedLab = lo.ToPtr(labByUserKey[userKeys[i].Name].ID)
-			user.UpdatedAt = lo.ToPtr(time.Now())
-			if _, ok := userGPAsByLab[*user.ConfirmedLab]; !ok {
-				userGPAsByLab[*user.ConfirmedLab] = make([]*entity.UserGPA, 0)
-			}
-			userGPAsByLab[*user.ConfirmedLab] = append(userGPAsByLab[*user.ConfirmedLab], &entity.UserGPA{
-				UserKey: userKeys[i],
-				GPA:     user.Gpa,
+		for labKeyStr, users := range usersByLabKey {
+			// GPA 降順でソート
+			slices.SortFunc(users, func(a, b *entity.User) bool {
+				return a.Gpa > b.Gpa
 			})
-			mutations = append(mutations, datastore.NewUpdate(userKeys[i], user))
-		}
-		// UserGPAs を更新
-		for labID, userGPAs := range userGPAsByLab {
-			lab := labByUserKey[userGPAs[0].UserKey.Name]
-			lab.UserGPAs = userGPAs
-			lab.Confirmed = len(userGPAs) == lab.Capacity
+			lab := labByKey[labKeyStr]
+			okList, ngList := splitSlice(users, lab.Capacity)
+			if len(ngList) > 0 {
+				message = "定員漏れした学生が検出されました。"
+			}
+
+			// user の ConfirmedLab を更新
+			for _, user := range okList {
+				user.ConfirmedLab = lo.ToPtr(lab.ID)
+				user.UpdatedAt = lo.ToPtr(time.Now())
+				mutations = append(mutations, datastore.NewUpdate(entity.NewUserKey(user.UID), user))
+				updatedUsers = append(updatedUsers, user)
+			}
+			updatedUsers = append(updatedUsers, ngList...)
+
+			// userGPAs を更新
+			lab.UserGPAs = lo.Map(okList, func(user *entity.User, _ int) *entity.UserGPA {
+				return &entity.UserGPA{
+					UserKey: entity.NewUserKey(user.UID),
+					GPA:     user.Gpa,
+				}
+			})
+			lab.Confirmed = len(okList) == lab.Capacity
 			lab.UpdatedAt = lo.ToPtr(time.Now())
-			mutations = append(mutations, datastore.NewUpdate(entity.NewLabKey(labID, year), lab))
+			labKey, _ := datastore.DecodeKey(labKeyStr)
+			mutations = append(mutations, datastore.NewUpdate(labKey, lab))
+
 		}
 
 		if _, err := tx.Mutate(mutations...); err != nil {
@@ -99,10 +104,16 @@ func (i *AdminInteractor) FinalDecision(ctx context.Context, year int) (*models.
 		return nil, err
 	}
 
-	return &models.FinalDicisionResponse{
-		Ok: len(uncertainUsers) == 0,
-		UncertainUsers: lo.Map(uncertainUsers, func(k *datastore.Key, _ int) string {
-			return k.Name
+	return &models.FinalDecisionResponse{
+		Message: message,
+		Users: lo.Map(users, func(user *entity.User, _ int) *models.User {
+			return &models.User{
+				UID:          user.UID,
+				Gpa:          user.Gpa,
+				WishLab:      user.WishLab,
+				ConfirmedLab: user.ConfirmedLab,
+				Year:         user.Year,
+			}
 		}),
 	}, nil
 }
