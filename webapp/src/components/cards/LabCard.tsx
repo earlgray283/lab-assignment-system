@@ -4,6 +4,7 @@ import { fetchLabs } from '../../apis/labs';
 import { Lab, UserGPA } from '../../apis/models/lab';
 import { Chart as ChartJS, ArcElement, Legend } from 'chart.js';
 import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 import { DisplayGpa } from '../util';
 import { UserContext } from '../../App';
 import { Link } from 'react-router-dom';
@@ -97,16 +98,20 @@ function LabCard(props: {
               ></Box>
             );
           }
-          
+
           if (lab.userGPAs == null) {
             lab.userGPAs = [] as UserGPA[];
           }
           const userGPAsLength = lab.userGPAs.length;
-          const averageGPA = userGPAsLength === 0 ? 0 : lab.userGPAs.map((u) => u.gpa).reduce((p, c) => p + c, 0) / userGPAsLength;
+          const averageGPA =
+            userGPAsLength === 0
+              ? 0
+              : lab.userGPAs.map((u) => u.gpa).reduce((p, c) => p + c, 0) /
+                userGPAsLength;
 
           lab.userGPAs.sort((a, b) => b.gpa - a.gpa);
           const borderLine = lab.userGPAs.at(lab.capacity - 1)?.gpa;
-          const assignable = 
+          const assignable =
             userGPAsLength < lab.capacity ||
             cmpLessThan(borderLine ?? 0, user.gpa);
 
@@ -138,10 +143,11 @@ function LabCard(props: {
                 <Tooltip
                   title={assignable ? '配属可能です' : '配属ができません'}
                 >
-                  <CheckIcon
-                    fontSize='small'
-                    sx={{ color: assignable ? 'green' : 'red' }}
-                  />
+                  {assignable ? (
+                    <CheckIcon fontSize='small' sx={{ color: 'green' }} />
+                  ) : (
+                    <CloseIcon fontSize='small' sx={{ color: 'red' }} />
+                  )}
                 </Tooltip>
               </Typography>
 
@@ -159,12 +165,7 @@ function LabCard(props: {
                   <Box>GPA</Box>
                   <Box marginLeft='10px'>
                     {' '}
-                    - 平均:{' '}
-                    <DisplayGpa
-                      gpa={
-                        averageGPA
-                      }
-                    />
+                    - 平均: <DisplayGpa gpa={averageGPA} />
                   </Box>
 
                   <Box marginLeft='10px'>
