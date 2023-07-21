@@ -14,6 +14,5 @@ type Lab struct {
 }
 
 type UserGPA struct {
-	UserID string  `json:"userID"`
-	GPA    float64 `json:"gpa"`
+	GPA float64 `json:"gpa"`
 }

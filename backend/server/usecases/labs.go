@@ -65,8 +65,7 @@ func (i *LabsInteractor) ListLabs(ctx context.Context, year int, optionFuncs ...
 				Year:     lab.Year,
 				UserGPAs: lo.Map(lab.UserGPAs, func(userGPA *entity.UserGPA, _ int) *models.UserGPA {
 					return &models.UserGPA{
-						UserID: userGPA.UserKey.Name,
-						GPA:    userGPA.GPA,
+						GPA: userGPA.GPA,
 					}
 				}),
 			}

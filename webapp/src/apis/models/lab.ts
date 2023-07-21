@@ -12,6 +12,5 @@ export interface Lab {
 }
 
 export interface UserGPA {
-  userID: string;
   gpa: number;
 }
