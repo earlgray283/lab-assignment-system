@@ -29,15 +29,18 @@ func NewServer(dsClient *datastore.Client, addr string, corsConfig *cors.Config)
 	adminInteractor := usecases.NewAdminInteractor(dsClient, logger)
 	adminController := i_http.NewAdminController(adminInteractor)
 
+	// audience APIs
 	r.POST("/auth/signin", authController.Login)
 	r.POST("/auth/signout", middleware.Authentication(dsClient), authController.Logout)
 	r.GET("/labs", labsController.ListLabs)
-	// TODO: GET /labs/csv
 	r.PUT("/users/lab", middleware.Authentication(dsClient), usersController.UpdateUser)
 	r.GET("/users/me", middleware.Authentication(dsClient), usersController.GetUserMe)
 	r.GET("/grades", middleware.Authentication(dsClient), gradesController.ListGrades)
-	r.GET("/admin/final-decision", middleware.Authentication(dsClient), adminController.FinalDecision)
+
+	// admin APIs
+	r.POST("/admin/final-decision", middleware.Authentication(dsClient), adminController.FinalDecision)
 	r.GET("/admin/csv", middleware.Authentication(dsClient), adminController.GetCSV)
+	r.POST("/admin/create-users", middleware.Authentication(dsClient), adminController.CreateUsers)
 
 	return &http.Server{
 		Addr:    addr,

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"lab-assignment-system-backend/server/domain/entity"
 	"lab-assignment-system-backend/server/domain/models"
@@ -16,6 +17,8 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type AdminInteractor struct {
@@ -32,7 +35,7 @@ func (i *AdminInteractor) FinalDecision(ctx context.Context, year int) (*models.
 	labKeys, err := i.dsClient.GetAll(ctx, datastore.NewQuery(entity.KindLab).FilterField("Year", "=", year), &labs)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return nil, lib.NewInternalServerError(err.Error())
 	}
 	labByKey := make(map[string]*entity.Lab, len(labs))
 	for i, lab := range labs {
@@ -42,7 +45,7 @@ func (i *AdminInteractor) FinalDecision(ctx context.Context, year int) (*models.
 	users := make([]*entity.User, 0)
 	if _, err := i.dsClient.GetAll(ctx, datastore.NewQuery(entity.KindUser).FilterField("Year", "=", year), &users); err != nil {
 		log.Println(err)
-		return nil, err
+		return nil, lib.NewInternalServerError(err.Error())
 	}
 	usersByLabKey := make(map[string][]*entity.User)
 	for _, user := range users {
@@ -101,7 +104,7 @@ func (i *AdminInteractor) FinalDecision(ctx context.Context, year int) (*models.
 		return nil
 	}); err != nil {
 		log.Println(err)
-		return nil, err
+		return nil, lib.NewInternalServerError(err.Error())
 	}
 
 	return &models.FinalDecisionResponse{
@@ -143,6 +146,39 @@ func (i *AdminInteractor) GetCSV(ctx context.Context, year int) (io.Reader, erro
 	}
 	w.Flush()
 	return buf, nil
+}
+
+func (i *AdminInteractor) CreateUsers(ctx context.Context, payload *models.CreateUsersPayload) (*models.CreateUsersResponse, error) {
+	if _, err := i.dsClient.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
+		mutations := make([]*datastore.Mutation, 0)
+		for _, user := range payload.Users {
+			newUser, key := entity.NewUser(user.UID, user.Gpa, payload.Year, entity.RoleAudience, time.Now())
+			mutations = append(mutations, datastore.NewInsert(key, newUser))
+		}
+		if _, err := tx.Mutate(mutations...); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		i.logger.Println(err)
+		if merr, ok := err.(*datastore.MultiError); ok {
+			for _, err := range *merr {
+				if status.Code(err) == codes.AlreadyExists {
+					return nil, lib.NewBadRequestError(fmt.Sprintf("the user is already exist: %v", err))
+				}
+			}
+		}
+		return nil, lib.NewInternalServerError(err.Error())
+	}
+	return &models.CreateUsersResponse{
+		Users: lo.Map(payload.Users, func(user *models.CreateUsersPayloadUser, _ int) *models.User {
+			return &models.User{
+				UID:  user.UID,
+				Gpa:  user.Gpa,
+				Year: payload.Year,
+			}
+		}),
+	}, nil
 }
 
 // return a[:mid], a[mid:]
