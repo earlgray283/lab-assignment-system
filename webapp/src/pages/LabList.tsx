@@ -64,15 +64,15 @@ const columns: GridColDef<Lab>[] = [
     align: 'center',
     headerAlign: 'center',
     valueGetter: (params) => {
-      if (!params.row.userGPAs) {
-        return -1;
+      let gpa = -1;
+      if (params.row.userGPAs) {
+        params.row.userGPAs.sort((a, b) => b.gpa - a.gpa);
+        gpa =
+          params.row.userGPAs.at(params.row.capacity - 1)?.gpa ??
+          params.row.userGPAs.at(params.row.userGPAs.length - 1)?.gpa ??
+          -1;
       }
-      params.row.userGPAs.sort((a, b) => b.gpa - a.gpa);
-      return (
-        params.row.userGPAs.at(params.row.capacity - 1) ??
-        params.row.userGPAs.at(params.row.userGPAs.length - 1) ??
-        -1
-      );
+      return gpa;
     },
     renderCell: (params) => {
       let gpa = -1;
