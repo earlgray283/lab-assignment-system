@@ -16,7 +16,9 @@ type GetUserMeResponse struct {
 type User struct {
 	UID          string  `json:"uid"`
 	Gpa          float64 `json:"gpa"`
+	Role         string  `json:"role"`
 	WishLab      *string `json:"wishLab"`
 	ConfirmedLab *string `json:"confirmedLab"`
 	Year         int     `json:"year"`
+	Reason       string  `json:"reason"`
 }

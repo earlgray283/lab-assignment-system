@@ -140,7 +140,9 @@ func toModelUser(user *entity.User) *models.User {
 		UID:          user.UID,
 		Gpa:          user.Gpa,
 		WishLab:      user.WishLab,
+		Role:         string(user.Role),
 		ConfirmedLab: user.ConfirmedLab,
 		Year:         user.Year,
+		Reason:       user.Reason,
 	}
 }

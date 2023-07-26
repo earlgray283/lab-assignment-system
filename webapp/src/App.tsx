@@ -10,6 +10,7 @@ import React, {
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Appbar } from './components/Appbar';
 import { fetchUser } from './apis/user';
+import { AdminPage } from './pages/Admin';
 const LabListPage = lazy(() => import('./pages/LabList'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -76,6 +77,7 @@ function App(): JSX.Element {
                       </Route>
 
                       <Route path='labs' element={<LabListPage />} />
+                      <Route path='admin' element={<AdminPage />} />
                     </Route>
                   </Routes>
                 </Box>

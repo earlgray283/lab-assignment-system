@@ -65,6 +65,7 @@ export function Appbar(): JSX.Element {
             }}
           >
             <MenuItem onClick={() => navigate('/profile')}>Profile</MenuItem>
+            <MenuItem onClick={() => navigate('/admin')}>Admin</MenuItem>
             <Divider />
             <MenuItem onClick={async () => await handleSignout()}>
               Logout

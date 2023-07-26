@@ -13,6 +13,7 @@ type User struct {
 	ConfirmedLab *string
 	Year         int
 	Role         Role
+	Reason       string
 	CreatedAt    time.Time
 	UpdatedAt    *time.Time
 }

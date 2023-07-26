@@ -1,6 +1,7 @@
 package http
 
 import (
+	"archive/zip"
 	"io"
 	"lab-assignment-system-backend/server/api/middleware"
 	"lab-assignment-system-backend/server/domain/entity"
@@ -34,12 +35,82 @@ func (c *AdminController) FinalDecision(gc *gin.Context) {
 		return
 	}
 
-	resp, err := c.interactor.FinalDecision(gc.Request.Context(), payload.Year)
+	labCSV, userCSV, err := c.interactor.FinalDecision(gc.Request.Context(), payload.Year)
 	if err != nil {
 		gc.AbortWithStatusJSON(500, err)
 		return
 	}
-	gc.JSON(200, resp)
+
+	zw := zip.NewWriter(gc.Writer)
+	labw, err := zw.Create("lab.csv")
+	if err != nil {
+		gc.AbortWithStatusJSON(500, err)
+		return
+	}
+	_, err = io.Copy(labw, labCSV)
+	if err != nil {
+		gc.AbortWithStatusJSON(500, err)
+		return
+	}
+	userw, err := zw.Create("user.csv")
+	if err != nil {
+		gc.AbortWithStatusJSON(500, err)
+		return
+	}
+	_, err = io.Copy(userw, userCSV)
+	if err != nil {
+		gc.AbortWithStatusJSON(500, err)
+		return
+	}
+	zw.Close()
+	gc.Writer.Header().Set("Content-Type", "application/zip")
+	gc.Writer.WriteHeader(http.StatusOK)
+}
+
+func (c *AdminController) FinalDecisionDryRun(gc *gin.Context) {
+	user, _ := middleware.GetUser(gc)
+	if user.Role != entity.RoleAdmin {
+		gc.AbortWithStatusJSON(403, lib.NewBadRequestError("権限がありません"))
+		return
+	}
+
+	var payload models.FinalDecisionPayload
+	if err := gc.ShouldBindJSON(&payload); err != nil {
+		gc.AbortWithStatusJSON(400, lib.NewBadRequestError("invalid payload"))
+		return
+	}
+
+	labCSV, userCSV, err := c.interactor.FinalDecisionDryRun(gc.Request.Context(), payload.Year)
+	if err != nil {
+		gc.AbortWithStatusJSON(500, err)
+		return
+	}
+
+	zw := zip.NewWriter(gc.Writer)
+	labw, err := zw.Create("csv/lab.csv")
+	if err != nil {
+		gc.AbortWithStatusJSON(500, err)
+		return
+	}
+	_, err = io.Copy(labw, labCSV)
+	if err != nil {
+		gc.AbortWithStatusJSON(500, err)
+		return
+	}
+	userw, err := zw.Create("csv/user.csv")
+	if err != nil {
+		gc.AbortWithStatusJSON(500, err)
+		return
+	}
+	_, err = io.Copy(userw, userCSV)
+	if err != nil {
+		gc.AbortWithStatusJSON(500, err)
+		return
+	}
+	zw.Close()
+	gc.Writer.Header().Set("Content-Type", "application/zip")
+	gc.Writer.Header().Set("Content-Disposition", "attachment; filename='csv.zip'")
+	gc.Writer.WriteHeader(http.StatusOK)
 }
 
 func (c *AdminController) GetCSV(gc *gin.Context) {

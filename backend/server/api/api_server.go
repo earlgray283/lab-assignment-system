@@ -39,6 +39,7 @@ func NewServer(dsClient *datastore.Client, addr string, corsConfig *cors.Config)
 
 	// admin APIs
 	r.POST("/admin/final-decision", middleware.Authentication(dsClient), adminController.FinalDecision)
+	r.POST("/admin/final-decision-dryrun", middleware.Authentication(dsClient), adminController.FinalDecisionDryRun)
 	r.GET("/admin/csv", middleware.Authentication(dsClient), adminController.GetCSV)
 	r.POST("/admin/create-users", middleware.Authentication(dsClient), adminController.CreateUsers)
 

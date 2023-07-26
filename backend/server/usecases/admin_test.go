@@ -3,7 +3,6 @@ package usecases
 import (
 	"context"
 	"lab-assignment-system-backend/server/domain/entity"
-	"lab-assignment-system-backend/server/domain/models"
 	"lab-assignment-system-backend/server/lib"
 	"lab-assignment-system-backend/server/lib/testutil"
 	"log"
@@ -31,7 +30,7 @@ func Test_FinalDecision(t *testing.T) {
 
 	tests := map[string]struct {
 		prepare func(t *testing.T)
-		assert  func(t *testing.T, resp *models.FinalDecisionResponse)
+		assert  func(t *testing.T)
 	}{
 		"case1": {
 			prepare: func(t *testing.T) {
@@ -42,7 +41,7 @@ func Test_FinalDecision(t *testing.T) {
 				createUser(t, dsClient, "b", 3., 2023, entity.RoleAudience, withWishLab("ohkilab"))
 				createUser(t, dsClient, "c", 2., 2023, entity.RoleAudience, withWishLab("ahkilab"))
 			},
-			assert: func(t *testing.T, resp *models.FinalDecisionResponse) {
+			assert: func(t *testing.T) {
 				a := getUser(t, dsClient, "a")
 				require.NotNil(t, a.ConfirmedLab)
 				assert.Equal(t, "uhkilab", *a.ConfirmedLab)
@@ -69,7 +68,7 @@ func Test_FinalDecision(t *testing.T) {
 				createUser(t, dsClient, "b", 3., 2023, entity.RoleAudience, withWishLab("ohkilab"))
 				createUser(t, dsClient, "c", 2., 2023, entity.RoleAudience, withWishLab("ohkilab"))
 			},
-			assert: func(t *testing.T, resp *models.FinalDecisionResponse) {
+			assert: func(t *testing.T) {
 				a := getUser(t, dsClient, "a")
 				require.NotNil(t, a.ConfirmedLab)
 				assert.Equal(t, "ohkilab", *a.ConfirmedLab)
@@ -94,7 +93,7 @@ func Test_FinalDecision(t *testing.T) {
 				createUser(t, dsClient, "f", 4.0, 2023, entity.RoleAudience, withWishLab("ahkilab"))
 				createUser(t, dsClient, "g", 3.9, 2023, entity.RoleAudience, withWishLab("ahkilab"))
 			},
-			assert: func(t *testing.T, resp *models.FinalDecisionResponse) {
+			assert: func(t *testing.T) {
 				a := getUser(t, dsClient, "a")
 				require.NotNil(t, a.ConfirmedLab)
 				assert.Equal(t, "ohkilab", *a.ConfirmedLab)
@@ -135,12 +134,12 @@ func Test_FinalDecision(t *testing.T) {
 			defer testutil.Truncate(t, dsClient, entity.KindUser)
 
 			test.prepare(t)
-			resp, err := adminInteractor.FinalDecision(ctx, 2023)
+			_, _, err := adminInteractor.FinalDecision(ctx, 2023)
 			require.NoError(t, err)
 			var users []*entity.User
 			_, err = dsClient.GetAll(ctx, datastore.NewQuery(entity.KindUser), &users)
 			require.NoError(t, err)
-			test.assert(t, resp)
+			test.assert(t)
 		})
 	}
 }
