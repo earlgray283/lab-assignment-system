@@ -32,12 +32,13 @@ func main() {
 	}
 	labs := []struct {
 		id       string
+		lower    int
 		capacity int
 		year     int
 	}{
-		{"ohkilab", 2, 2023},
-		{"uhkilab", 2, 2023},
-		{"ahkilab", 2, 2023},
+		{"ohkilab", 1, 2, 2023},
+		{"uhkilab", 1, 2, 2023},
+		{"ahkilab", 1, 2, 2023},
 	}
 
 	survey, surveyKey := entity.NewSurvey(2023, lib.YMD(2023, 1, 1), lib.YMD(2023, 12, 31), time.Now())
@@ -49,7 +50,7 @@ func main() {
 			mutations = append(mutations, datastore.NewUpsert(key, newUser))
 		}
 		for _, lab := range labs {
-			newLab, key := entity.NewLab(lab.id, lab.id, lab.capacity, lab.year, false, time.Now())
+			newLab, key := entity.NewLab(lab.id, lab.id, lab.lower, lab.capacity, lab.year, false, time.Now())
 			for _, user := range users {
 				if user.wishLab == nil {
 					continue

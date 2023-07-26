@@ -41,63 +41,124 @@ func (i *AdminInteractor) FinalDecision(ctx context.Context, year int) (*models.
 	for i, lab := range labs {
 		labByKey[labKeys[i].Encode()] = lab
 	}
-
 	users := make([]*entity.User, 0)
-	if _, err := i.dsClient.GetAll(ctx, datastore.NewQuery(entity.KindUser).FilterField("Year", "=", year), &users); err != nil {
+	userKeys, err := i.dsClient.GetAll(ctx, datastore.NewQuery(entity.KindUser).FilterField("Year", "=", year), &users)
+	if err != nil {
 		log.Println(err)
 		return nil, lib.NewInternalServerError(err.Error())
 	}
-	usersByLabKey := make(map[string][]*entity.User)
+	userByKey := make(map[string]*entity.User, len(users))
+	for i, user := range users {
+		userByKey[userKeys[i].Encode()] = user
+	}
+	usersByLabKey := make(map[string][]*entity.User, len(labs))
+	for _, lab := range labs {
+		labKey := entity.NewLabKey(lab.ID, year).Encode()
+		usersByLabKey[labKey] = make([]*entity.User, 0)
+	}
 	for _, user := range users {
 		if user.WishLab == nil {
 			continue
 		}
-		labKeyStr := entity.NewLabKey(*user.WishLab, year).Encode()
-		if _, ok := usersByLabKey[labKeyStr]; !ok {
-			usersByLabKey[labKeyStr] = make([]*entity.User, 0)
-		}
-		usersByLabKey[labKeyStr] = append(usersByLabKey[labKeyStr], user)
+		labKey := entity.NewLabKey(*user.WishLab, year).Encode()
+		usersByLabKey[labKey] = append(usersByLabKey[labKey], user)
 	}
 
-	updatedUsers := make([]*entity.User, 0, len(users))
-	var message string = "すべての学生の登録が正常に完了しました。"
-	if _, err := i.dsClient.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-		mutations := make([]*datastore.Mutation, 0)
+	resolvedUsers := make([]*entity.User, 0)
+	pauseUsers := make([]*entity.User, 0)
+	needUsersNum := 0
+	for labKey, users := range usersByLabKey {
+		lab := labByKey[labKey]
+		slices.SortFunc(users, func(a, b *entity.User) bool { return a.Gpa > b.Gpa })
 
-		for labKeyStr, users := range usersByLabKey {
-			// GPA 降順でソート
-			slices.SortFunc(users, func(a, b *entity.User) bool {
-				return a.Gpa > b.Gpa
-			})
-			lab := labByKey[labKeyStr]
-			okList, ngList := splitSlice(users, lab.Capacity)
-			if len(ngList) > 0 {
-				message = "定員漏れした学生が検出されました。"
+		var threshold int
+		if lab.IsSpecial {
+			// A群の研究室は定員に収まっている学生は全員所属させる(下限が存在しないため)
+			threshold = lab.Capacity
+		} else {
+			// それ以外の通常の研究室は下限分確定させ、漏れは一旦保留にする
+			threshold = lab.Lower
+		}
+		if len(users) < lab.Lower {
+			needUsersNum += lab.Lower - len(users)
+		}
+		okList, ngList := splitSlice(users, threshold)
+		for _, user := range okList {
+			log.Println("ok", user.UID)
+			user := userByKey[entity.NewUserKey(user.UID).Encode()]
+			user.ConfirmedLab = lo.ToPtr(lab.ID)
+			user.UpdatedAt = lo.ToPtr(time.Now())
+			resolvedUsers = append(resolvedUsers, user)
+		}
+		pauseUsers = append(pauseUsers, ngList...)
+		lab.UserGPAs = lo.Map(okList, func(user *entity.User, _ int) *entity.UserGPA {
+			return &entity.UserGPA{
+				UserKey: entity.NewUserKey(user.UID),
+				GPA:     user.Gpa,
 			}
+		})
+		if len(lab.UserGPAs) == lab.Capacity {
+			lab.Confirmed = true
+		}
+	}
 
-			// user の ConfirmedLab を更新
-			for _, user := range okList {
-				user.ConfirmedLab = lo.ToPtr(lab.ID)
-				user.UpdatedAt = lo.ToPtr(time.Now())
-				mutations = append(mutations, datastore.NewUpdate(entity.NewUserKey(user.UID), user))
-				updatedUsers = append(updatedUsers, user)
-			}
-			updatedUsers = append(updatedUsers, ngList...)
-
-			// userGPAs を更新
-			lab.UserGPAs = lo.Map(okList, func(user *entity.User, _ int) *entity.UserGPA {
-				return &entity.UserGPA{
-					UserKey: entity.NewUserKey(user.UID),
-					GPA:     user.Gpa,
-				}
-			})
-			lab.Confirmed = len(okList) == lab.Capacity
-			lab.UpdatedAt = lo.ToPtr(time.Now())
-			labKey, _ := datastore.DecodeKey(labKeyStr)
-			mutations = append(mutations, datastore.NewUpdate(labKey, lab))
-
+	slices.SortFunc(pauseUsers, func(a, b *entity.User) bool { return a.Gpa > b.Gpa })
+	unresolvedUsers := make([]*entity.User, 0)
+	resolvedNum := 0
+	log.Println("needUsersNum", needUsersNum)
+	for i, user := range pauseUsers {
+		log.Println("!!", user.UID)
+		// 残りの保留中の学生の数が必要数に達していれば残りを unresolved にしてループを抜ける
+		if len(pauseUsers)-resolvedNum == needUsersNum {
+			unresolvedUsers = append(unresolvedUsers, pauseUsers[i:]...)
+			break
+		}
+		// 志望する研究室がなければ unresolved にする
+		if user.WishLab == nil {
+			unresolvedUsers = append(unresolvedUsers, user)
+			continue
+		}
+		wishLab := labByKey[entity.NewLabKey(*user.WishLab, year).Encode()]
+		// 志望する研究室が定員に達していれば unresolved にする
+		if wishLab.Confirmed {
+			unresolvedUsers = append(unresolvedUsers, user)
+			continue
 		}
 
+		user.ConfirmedLab = user.WishLab
+		user.UpdatedAt = lo.ToPtr(time.Now())
+		wishLab.UserGPAs = append(wishLab.UserGPAs, &entity.UserGPA{
+			UserKey: entity.NewUserKey(user.UID),
+			GPA:     user.Gpa,
+		})
+		if len(wishLab.UserGPAs) == wishLab.Capacity {
+			wishLab.Confirmed = true
+		}
+		resolvedUsers = append(resolvedUsers, user)
+		resolvedNum++
+	}
+
+	resolvedLabs := make([]*entity.Lab, 0)
+	unresolvedLabs := make([]*entity.Lab, 0)
+	for _, lab := range labs {
+		if !lab.Confirmed {
+			unresolvedLabs = append(unresolvedLabs, lab)
+		} else {
+			resolvedLabs = append(resolvedLabs, lab)
+		}
+	}
+
+	if _, err = i.dsClient.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
+		mutations := make([]*datastore.Mutation, 0)
+		for _, user := range resolvedUsers {
+			mutations = append(mutations, datastore.NewUpdate(entity.NewUserKey(user.UID), user))
+		}
+		for _, lab := range resolvedLabs {
+			mutations = append(mutations, datastore.NewUpdate(entity.NewLabKey(lab.ID, year), lab))
+		}
+		for _, lab := range unresolvedLabs {
+			mutations = append(mutations, datastore.NewUpdate(entity.NewLabKey(lab.ID, year), lab))
+		}
 		if _, err := tx.Mutate(mutations...); err != nil {
 			return err
 		}
@@ -108,15 +169,17 @@ func (i *AdminInteractor) FinalDecision(ctx context.Context, year int) (*models.
 	}
 
 	return &models.FinalDecisionResponse{
-		Message: message,
-		Users: lo.Map(users, func(user *entity.User, _ int) *models.User {
-			return &models.User{
-				UID:          user.UID,
-				Gpa:          user.Gpa,
-				WishLab:      user.WishLab,
-				ConfirmedLab: user.ConfirmedLab,
-				Year:         user.Year,
-			}
+		ResolvedUsers: lo.Map(resolvedUsers, func(user *entity.User, _ int) *models.User {
+			return toModelUser(user)
+		}),
+		UnresolvedUsers: lo.Map(unresolvedUsers, func(user *entity.User, _ int) *models.User {
+			return toModelUser(user)
+		}),
+		ResolvedLabs: lo.Map(resolvedLabs, func(lab *entity.Lab, _ int) *models.Lab {
+			return toModelLab(lab)
+		}),
+		UnresolvedLabs: lo.Map(unresolvedLabs, func(lab *entity.Lab, _ int) *models.Lab {
+			return toModelLab(lab)
 		}),
 	}, nil
 }
@@ -186,5 +249,5 @@ func splitSlice[T any](a []T, mid int) ([]T, []T) {
 	if len(a) <= mid {
 		return a, make([]T, 0)
 	}
-	return a[:mid], a[:mid]
+	return a[:mid], a[mid:]
 }

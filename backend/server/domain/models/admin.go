@@ -5,8 +5,10 @@ type FinalDecisionPayload struct {
 }
 
 type FinalDecisionResponse struct {
-	Message string  `json:"message"`
-	Users   []*User `json:"users"`
+	ResolvedUsers   []*User `json:"resolved_users"`
+	UnresolvedUsers []*User `json:"unresolved_users"`
+	ResolvedLabs    []*Lab  `json:"resolved_labs"`
+	UnresolvedLabs  []*Lab  `json:"unresolved_labs"`
 }
 
 type CreateUsersPayload struct {

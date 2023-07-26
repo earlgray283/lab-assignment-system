@@ -107,13 +107,7 @@ func (i *UsersInteractor) UpdateUser(ctx context.Context, user *entity.User, pay
 		return nil, lib.NewInternalServerError(err.Error())
 	}
 
-	return &models.User{
-		UID:          user.UID,
-		Gpa:          user.Gpa,
-		WishLab:      user.WishLab,
-		ConfirmedLab: user.ConfirmedLab,
-		Year:         user.Year,
-	}, nil
+	return toModelUser(user), nil
 }
 
 func updateNewLab(lab *entity.Lab, userKey *datastore.Key, gpa float64) {
@@ -139,4 +133,14 @@ func updateOldLab(lab *entity.Lab, userKey *datastore.Key, gpa float64) error {
 func updateUser(user *entity.User, labID string) {
 	user.WishLab = lo.ToPtr(labID)
 	user.UpdatedAt = lo.ToPtr(time.Now())
+}
+
+func toModelUser(user *entity.User) *models.User {
+	return &models.User{
+		UID:          user.UID,
+		Gpa:          user.Gpa,
+		WishLab:      user.WishLab,
+		ConfirmedLab: user.ConfirmedLab,
+		Year:         user.Year,
+	}
 }

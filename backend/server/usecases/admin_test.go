@@ -23,10 +23,6 @@ func Test_FinalDecision(t *testing.T) {
 	dsClient, cancel := testutil.TestClient(t)
 	defer cancel(t)
 
-	uhkilab := createLab(t, dsClient, "uhkilab", false, 2, 2023)
-	ohkilab := createLab(t, dsClient, "ohkilab", false, 2, 2023)
-	ahkilab := createLab(t, dsClient, "ahkilab", false, 2, 2023)
-	_, _, _ = uhkilab, ohkilab, ahkilab
 	survey, surveyKey := entity.NewSurvey(2023, lib.YMD(2023, 1, 1), lib.YMD(2023, 12, 31), time.Now())
 	_, err := dsClient.Put(ctx, surveyKey, survey)
 	require.NoError(t, err)
@@ -39,6 +35,9 @@ func Test_FinalDecision(t *testing.T) {
 	}{
 		"case1": {
 			prepare: func(t *testing.T) {
+				createLab(t, dsClient, "uhkilab", false, 1, 2, 2023)
+				createLab(t, dsClient, "ohkilab", false, 1, 2, 2023)
+				createLab(t, dsClient, "ahkilab", false, 1, 2, 2023)
 				createUser(t, dsClient, "a", 4., 2023, entity.RoleAudience, withWishLab("uhkilab"))
 				createUser(t, dsClient, "b", 3., 2023, entity.RoleAudience, withWishLab("ohkilab"))
 				createUser(t, dsClient, "c", 2., 2023, entity.RoleAudience, withWishLab("ahkilab"))
@@ -53,10 +52,19 @@ func Test_FinalDecision(t *testing.T) {
 				c := getUser(t, dsClient, "c")
 				require.NotNil(t, c.ConfirmedLab)
 				assert.Equal(t, "ahkilab", *c.ConfirmedLab)
+				uhkilab := getLab(t, dsClient, "uhkilab", 2023)
+				assert.Equal(t, "a", uhkilab.UserGPAs[0].UserKey.Name)
+				ohkilab := getLab(t, dsClient, "ohkilab", 2023)
+				assert.Equal(t, "b", ohkilab.UserGPAs[0].UserKey.Name)
+				ahkilab := getLab(t, dsClient, "ahkilab", 2023)
+				assert.Equal(t, "c", ahkilab.UserGPAs[0].UserKey.Name)
 			},
 		},
 		"case2": {
 			prepare: func(t *testing.T) {
+				createLab(t, dsClient, "uhkilab", false, 1, 2, 2023)
+				createLab(t, dsClient, "ohkilab", false, 1, 2, 2023)
+				createLab(t, dsClient, "ahkilab", false, 1, 2, 2023)
 				createUser(t, dsClient, "a", 4., 2023, entity.RoleAudience, withWishLab("ohkilab"))
 				createUser(t, dsClient, "b", 3., 2023, entity.RoleAudience, withWishLab("ohkilab"))
 				createUser(t, dsClient, "c", 2., 2023, entity.RoleAudience, withWishLab("ohkilab"))
@@ -65,22 +73,26 @@ func Test_FinalDecision(t *testing.T) {
 				a := getUser(t, dsClient, "a")
 				require.NotNil(t, a.ConfirmedLab)
 				assert.Equal(t, "ohkilab", *a.ConfirmedLab)
-				b := getUser(t, dsClient, "b")
-				require.NotNil(t, b.ConfirmedLab)
-				assert.Equal(t, "ohkilab", *b.ConfirmedLab)
+				b := getUser(t, dsClient, "b") // b は ohkilab の定員に収まっているが、uhkilab と ahkilab を埋めるために駆り出されるので未配属になる
+				require.Nil(t, b.ConfirmedLab)
 				c := getUser(t, dsClient, "c")
 				require.Nil(t, c.ConfirmedLab)
+				ohkilab := getLab(t, dsClient, "ohkilab", 2023)
+				assert.Equal(t, "a", ohkilab.UserGPAs[0].UserKey.Name)
 			},
 		},
 		"case3": {
 			prepare: func(t *testing.T) {
-				createUser(t, dsClient, "a", 3.97, 2023, entity.RoleAudience, withWishLab("ohkilab"))
-				createUser(t, dsClient, "b", 3.98, 2023, entity.RoleAudience, withWishLab("ohkilab"))
-				createUser(t, dsClient, "c", 3.99, 2023, entity.RoleAudience, withWishLab("uhkilab"))
-				createUser(t, dsClient, "d", 4.00, 2023, entity.RoleAudience, withWishLab("uhkilab"))
-				createUser(t, dsClient, "e", 4.01, 2023, entity.RoleAudience, withWishLab("ahkilab"))
-				createUser(t, dsClient, "f", 4.02, 2023, entity.RoleAudience, withWishLab("ahkilab"))
-				createUser(t, dsClient, "g", 4.03, 2023, entity.RoleAudience, withWishLab("ahkilab"))
+				createLab(t, dsClient, "uhkilab", false, 1, 2, 2023)
+				createLab(t, dsClient, "ohkilab", false, 1, 2, 2023)
+				createLab(t, dsClient, "ahkilab", false, 1, 2, 2023)
+				createUser(t, dsClient, "a", 4.5, 2023, entity.RoleAudience, withWishLab("ohkilab"))
+				createUser(t, dsClient, "b", 4.4, 2023, entity.RoleAudience, withWishLab("ohkilab"))
+				createUser(t, dsClient, "c", 4.3, 2023, entity.RoleAudience, withWishLab("uhkilab"))
+				createUser(t, dsClient, "d", 4.2, 2023, entity.RoleAudience, withWishLab("uhkilab"))
+				createUser(t, dsClient, "e", 4.1, 2023, entity.RoleAudience, withWishLab("ahkilab"))
+				createUser(t, dsClient, "f", 4.0, 2023, entity.RoleAudience, withWishLab("ahkilab"))
+				createUser(t, dsClient, "g", 3.9, 2023, entity.RoleAudience, withWishLab("ahkilab"))
 			},
 			assert: func(t *testing.T, resp *models.FinalDecisionResponse) {
 				a := getUser(t, dsClient, "a")
@@ -96,13 +108,24 @@ func Test_FinalDecision(t *testing.T) {
 				require.NotNil(t, d.ConfirmedLab)
 				assert.Equal(t, "uhkilab", *d.ConfirmedLab)
 				e := getUser(t, dsClient, "e")
-				require.Nil(t, e.ConfirmedLab)
+				require.NotNil(t, e.ConfirmedLab)
+				assert.Equal(t, "ahkilab", *e.ConfirmedLab)
 				f := getUser(t, dsClient, "f")
 				require.NotNil(t, f.ConfirmedLab)
 				assert.Equal(t, "ahkilab", *f.ConfirmedLab)
 				g := getUser(t, dsClient, "g")
-				require.NotNil(t, g.ConfirmedLab)
-				assert.Equal(t, "ahkilab", *g.ConfirmedLab)
+				require.Nil(t, g.ConfirmedLab)
+				ohkilab := getLab(t, dsClient, "ohkilab", 2023)
+				assert.Equal(t, "a", ohkilab.UserGPAs[0].UserKey.Name)
+				assert.Equal(t, "b", ohkilab.UserGPAs[1].UserKey.Name)
+				assert.True(t, ohkilab.Confirmed)
+				uhkilab := getLab(t, dsClient, "uhkilab", 2023)
+				assert.Equal(t, "c", uhkilab.UserGPAs[0].UserKey.Name)
+				assert.Equal(t, "d", uhkilab.UserGPAs[1].UserKey.Name)
+				assert.True(t, uhkilab.Confirmed)
+				ahkilab := getLab(t, dsClient, "ahkilab", 2023)
+				assert.Equal(t, "e", ahkilab.UserGPAs[0].UserKey.Name)
+				assert.Equal(t, "f", ahkilab.UserGPAs[1].UserKey.Name)
 			},
 		},
 	}
@@ -122,9 +145,9 @@ func Test_FinalDecision(t *testing.T) {
 	}
 }
 
-func createLab(t *testing.T, dsClient *datastore.Client, id string, isSpecial bool, capacity, year int) *entity.Lab {
+func createLab(t *testing.T, dsClient *datastore.Client, id string, isSpecial bool, lower, capacity, year int) *entity.Lab {
 	ctx := context.Background()
-	lab, labKey := entity.NewLab(id, id, capacity, year, isSpecial, time.Now())
+	lab, labKey := entity.NewLab(id, id, lower, capacity, year, isSpecial, time.Now())
 	_, err := dsClient.Put(ctx, labKey, lab)
 	require.NoError(t, err)
 	return lab
@@ -153,4 +176,12 @@ func getUser(t *testing.T, dsClient *datastore.Client, id string) *entity.User {
 	err := dsClient.Get(ctx, entity.NewUserKey(id), &user)
 	require.NoError(t, err)
 	return &user
+}
+
+func getLab(t *testing.T, dsClient *datastore.Client, id string, year int) *entity.Lab {
+	ctx := context.Background()
+	var lab entity.Lab
+	err := dsClient.Get(ctx, entity.NewLabKey(id, year), &lab)
+	require.NoError(t, err)
+	return &lab
 }
