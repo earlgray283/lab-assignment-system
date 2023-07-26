@@ -4,6 +4,7 @@ export interface ApiUser {
   wishLab: string | null;
   confirmedLab: string | null;
   year: number;
+  role: string;
 }
 
 export interface UpdateUserPayload {

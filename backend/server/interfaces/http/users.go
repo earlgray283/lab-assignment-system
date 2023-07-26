@@ -48,8 +48,10 @@ func (c *UsersController) GetUserMe(gc *gin.Context) {
 	gc.JSON(200, &models.User{
 		UID:          user.UID,
 		Gpa:          user.Gpa,
+		Role:         string(user.Role),
 		WishLab:      user.WishLab,
 		ConfirmedLab: user.ConfirmedLab,
 		Year:         user.Year,
+		Reason:       user.Reason,
 	})
 }

@@ -56,13 +56,7 @@ func (i *AuthInteractor) Login(ctx context.Context, uid string) (*models.SigninR
 		SameSite: http.SameSiteNoneMode,
 	}
 	return &models.SigninResponse{
-		User: &models.User{
-			UID:          user.UID,
-			Gpa:          user.Gpa,
-			WishLab:      user.WishLab,
-			ConfirmedLab: user.ConfirmedLab,
-			Year:         user.Year,
-		},
+		User: toModelUser(&user),
 	}, cookie, nil
 }
 
