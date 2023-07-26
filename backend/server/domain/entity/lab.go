@@ -14,6 +14,7 @@ type Lab struct {
 	Year      int
 	UserGPAs  []*UserGPA // the length must be ApplicantCount
 	Confirmed bool
+	IsSpecial bool
 	CreatedAt time.Time
 	UpdatedAt *time.Time
 }
@@ -30,12 +31,13 @@ func NewLabKey(labId string, year int) *datastore.Key {
 	return datastore.NameKey(KindLab, fmt.Sprintf("%s_%d", labId, year), nil)
 }
 
-func NewLab(id string, name string, capacity, year int, createdAt time.Time) (*Lab, *datastore.Key) {
+func NewLab(id string, name string, capacity, year int, isSpecial bool, createdAt time.Time) (*Lab, *datastore.Key) {
 	return &Lab{
 		ID:        id,
 		Name:      name,
 		Capacity:  capacity,
 		Year:      year,
+		IsSpecial: isSpecial,
 		CreatedAt: createdAt,
 	}, NewLabKey(id, year)
 }

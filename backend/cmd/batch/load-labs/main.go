@@ -55,11 +55,16 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		isSpecial, err := strconv.ParseBool(records[3])
+		if err != nil {
+			log.Fatal(err)
+		}
 		lab := &entity.Lab{
 			ID:        records[0],
 			Name:      records[1],
 			Capacity:  capacity,
 			Year:      *year,
+			IsSpecial: isSpecial,
 			CreatedAt: time.Now(),
 		}
 		mutations = append(mutations, datastore.NewUpsert(entity.NewLabKey(lab.ID, *year), lab))

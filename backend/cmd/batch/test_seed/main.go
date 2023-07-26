@@ -49,7 +49,7 @@ func main() {
 			mutations = append(mutations, datastore.NewUpsert(key, newUser))
 		}
 		for _, lab := range labs {
-			newLab, key := entity.NewLab(lab.id, lab.id, lab.capacity, lab.year, time.Now())
+			newLab, key := entity.NewLab(lab.id, lab.id, lab.capacity, lab.year, false, time.Now())
 			for _, user := range users {
 				if user.wishLab == nil {
 					continue

@@ -23,9 +23,9 @@ func Test_FinalDecision(t *testing.T) {
 	dsClient, cancel := testutil.TestClient(t)
 	defer cancel(t)
 
-	uhkilab := createLab(t, dsClient, "uhkilab", 2, 2023)
-	ohkilab := createLab(t, dsClient, "ohkilab", 2, 2023)
-	ahkilab := createLab(t, dsClient, "ahkilab", 2, 2023)
+	uhkilab := createLab(t, dsClient, "uhkilab", false, 2, 2023)
+	ohkilab := createLab(t, dsClient, "ohkilab", false, 2, 2023)
+	ahkilab := createLab(t, dsClient, "ahkilab", false, 2, 2023)
 	_, _, _ = uhkilab, ohkilab, ahkilab
 	survey, surveyKey := entity.NewSurvey(2023, lib.YMD(2023, 1, 1), lib.YMD(2023, 12, 31), time.Now())
 	_, err := dsClient.Put(ctx, surveyKey, survey)
@@ -122,9 +122,9 @@ func Test_FinalDecision(t *testing.T) {
 	}
 }
 
-func createLab(t *testing.T, dsClient *datastore.Client, id string, capacity, year int) *entity.Lab {
+func createLab(t *testing.T, dsClient *datastore.Client, id string, isSpecial bool, capacity, year int) *entity.Lab {
 	ctx := context.Background()
-	lab, labKey := entity.NewLab(id, id, capacity, year, time.Now())
+	lab, labKey := entity.NewLab(id, id, capacity, year, isSpecial, time.Now())
 	_, err := dsClient.Put(ctx, labKey, lab)
 	require.NoError(t, err)
 	return lab
