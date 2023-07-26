@@ -57,7 +57,13 @@ func finalDecisionLogic(labs []*entity.Lab, users []*entity.User, labKeys, userK
 	pauseUsers := make([]*entity.User, 0)
 	needUsersNum := 0
 	for labKey, users := range usersByLabKey {
-		lab := labByKey[labKey]
+		lab, ok := labByKey[labKey]
+		if !ok {
+			for _, user := range users {
+				log.Println("!!!不整合発生!!!", user.UID, user.Year)
+			}
+			continue
+		}
 		log.Println("lab:", lab.Name, "users:", len(users))
 		slices.SortFunc(users, func(a, b *entity.User) bool { return a.Gpa > b.Gpa })
 
@@ -77,9 +83,9 @@ func finalDecisionLogic(labs []*entity.Lab, users []*entity.User, labKeys, userK
 			user.ConfirmedLab = lo.ToPtr(lab.ID)
 			user.UpdatedAt = lo.ToPtr(time.Now())
 			if lab.IsSpecial {
-				user.Reason = "within the lab which is special(1)"
+				user.Reason = "[OK] within the lab which is special(1)"
 			} else {
-				user.Reason = "within the lower(1)"
+				user.Reason = "[OK] within the lower(1)"
 			}
 			resolvedUsers = append(resolvedUsers, user)
 		}
@@ -95,6 +101,7 @@ func finalDecisionLogic(labs []*entity.Lab, users []*entity.User, labKeys, userK
 		}
 	}
 
+	log.Println("needUsersNum:", needUsersNum)
 	log.Printf("resolvedUsers: %d, pausedUsers: %d, users: %d", len(resolvedUsers), len(pauseUsers), len(users))
 
 	slices.SortFunc(pauseUsers, func(a, b *entity.User) bool { return a.Gpa > b.Gpa })
@@ -104,27 +111,28 @@ func finalDecisionLogic(labs []*entity.Lab, users []*entity.User, labKeys, userK
 		// 残りの保留中の学生の数が必要数に達していれば残りを unresolved にしてループを抜ける
 		if len(pauseUsers)-resolvedNum == needUsersNum {
 			for _, user := range pauseUsers[i:] {
-				user.Reason = "need for the labs that have not reached the lower(3)"
+				user.Reason = "[NG] need for the labs that have not reached the lower(4)"
 			}
 			unresolvedUsers = append(unresolvedUsers, pauseUsers[i:]...)
 			break
 		}
 		// 志望する研究室がなければ unresolved にする
 		if user.WishLab == nil {
-			user.Reason = "no wish lab(4)"
+			user.Reason = "[NG] no wish lab(5)"
 			unresolvedUsers = append(unresolvedUsers, user)
 			continue
 		}
 		wishLab := labByKey[entity.NewLabKey(*user.WishLab, year).Encode()]
 		// 志望する研究室が定員に達していれば unresolved にする
 		if wishLab.Confirmed {
-			user.Reason = "out of the capacity(2)"
+			user.Reason = "[NG] out of the capacity(3)"
 			unresolvedUsers = append(unresolvedUsers, user)
 			continue
 		}
 
 		user.ConfirmedLab = user.WishLab
 		user.UpdatedAt = lo.ToPtr(time.Now())
+		user.Reason = "[OK] within the wish lab(2)"
 		wishLab.UserGPAs = append(wishLab.UserGPAs, &entity.UserGPA{
 			UserKey: entity.NewUserKey(user.UID),
 			GPA:     user.Gpa,
