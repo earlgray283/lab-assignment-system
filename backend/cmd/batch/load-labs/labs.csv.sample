@@ -1,2 +1,2 @@
-<id>,<name>,<capacity>
-szpp,SZPP研究室,3776
+<id>,<name>,<capacity>,<isSpecial>
+szpp,SZPP研究室,3776,false
