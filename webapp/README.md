@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Node.js, yarn
+- Node.js, bun
     - recommend: volta(https://docs.volta.sh/guide/getting-started)
 
 ## Development
@@ -14,14 +14,14 @@ VITE_BACKEND_HOST=http://localhost:8080
 ```
 
 ```shell
-$ yarn
-$ yarn dev
+$ bun
+$ bun dev
 ```
 
 ## Deploy
 
 ```shell
-$ yarn firebase login
+$ bun firebase login
 ```
 
 ### test 環境
@@ -33,7 +33,7 @@ VITE_BACKEND_HOST=
 ```
 
 ```shell
-$ yarn deploy-test
+$ bun deploy-test
 ```
 
 ### production 環境
@@ -45,5 +45,5 @@ VITE_BACKEND_HOST=
 ```
 
 ```shell
-$ yarn deploy-prod
+$ bun deploy-prod
 ```

@@ -17,16 +17,16 @@ import (
 
 const ProjectID = "lab-assignment-system-test"
 
+func Test_sortByUserGPADesc(t *testing.T) {
+	users := []*entity.User{{Gpa: 3.0}, {Gpa: 1.0}, {Gpa: 4.0}}
+	sortByUserGPADesc(users)
+	assert.Equal(t, []*entity.User{{Gpa: 4.0}, {Gpa: 3.0}, {Gpa: 1.0}}, users)
+}
+
 func Test_FinalDecision(t *testing.T) {
 	ctx := context.Background()
 	dsClient, cancel := testutil.TestClient(t)
 	defer cancel(t)
-
-	survey, surveyKey := entity.NewSurvey(2023, lib.YMD(2023, 1, 1), lib.YMD(2023, 12, 31), time.Now())
-	_, err := dsClient.Put(ctx, surveyKey, survey)
-	require.NoError(t, err)
-
-	adminInteractor := NewAdminInteractor(dsClient, log.Default())
 
 	tests := map[string]struct {
 		prepare func(t *testing.T)
@@ -131,10 +131,15 @@ func Test_FinalDecision(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			defer testutil.Truncate(t, dsClient, entity.KindUser)
+			defer testutil.TruncateAll(t, dsClient)
+
+			survey, surveyKey := entity.NewSurvey(2023, lib.YMD(2023, 1, 1), lib.YMD(2023, 12, 31), time.Now())
+			_, err := dsClient.Put(ctx, surveyKey, survey)
+			require.NoError(t, err)
 
 			test.prepare(t)
-			_, _, err := adminInteractor.FinalDecision(ctx, 2023)
+			adminInteractor := NewAdminInteractor(dsClient, log.Default())
+			_, _, err = adminInteractor.FinalDecision(ctx, 2023)
 			require.NoError(t, err)
 			var users []*entity.User
 			_, err = dsClient.GetAll(ctx, datastore.NewQuery(entity.KindUser), &users)

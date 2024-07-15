@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/csv"
 	"errors"
@@ -12,12 +13,12 @@ import (
 	"lab-assignment-system-backend/server/lib"
 	"log"
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
 
 	"cloud.google.com/go/datastore"
 	"github.com/samber/lo"
-	"golang.org/x/exp/slices"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -29,6 +30,12 @@ type AdminInteractor struct {
 
 func NewAdminInteractor(dsClient *datastore.Client, logger *log.Logger) *AdminInteractor {
 	return &AdminInteractor{dsClient, logger}
+}
+
+func sortByUserGPADesc(users []*entity.User) {
+	slices.SortFunc(users, func(a, b *entity.User) int {
+		return cmp.Compare(b.Gpa, a.Gpa)
+	})
 }
 
 func finalDecisionLogic(labs []*entity.Lab, users []*entity.User, labKeys, userKeys []*datastore.Key, year int) ([]*entity.Lab, []*entity.User, error) {
@@ -65,7 +72,7 @@ func finalDecisionLogic(labs []*entity.Lab, users []*entity.User, labKeys, userK
 			continue
 		}
 		log.Println("lab:", lab.Name, "users:", len(users))
-		slices.SortFunc(users, func(a, b *entity.User) bool { return a.Gpa > b.Gpa })
+		sortByUserGPADesc(users)
 
 		var threshold int
 		if lab.IsSpecial {
@@ -104,7 +111,7 @@ func finalDecisionLogic(labs []*entity.Lab, users []*entity.User, labKeys, userK
 	log.Println("needUsersNum:", needUsersNum)
 	log.Printf("resolvedUsers: %d, pausedUsers: %d, users: %d", len(resolvedUsers), len(pauseUsers), len(users))
 
-	slices.SortFunc(pauseUsers, func(a, b *entity.User) bool { return a.Gpa > b.Gpa })
+	sortByUserGPADesc(pauseUsers)
 	unresolvedUsers := make([]*entity.User, 0)
 	resolvedNum := 0
 	for i, user := range pauseUsers {
@@ -145,7 +152,7 @@ func finalDecisionLogic(labs []*entity.Lab, users []*entity.User, labKeys, userK
 	}
 
 	users = append(resolvedUsers, unresolvedUsers...)
-	slices.SortFunc(users, func(a, b *entity.User) bool { return a.Gpa > b.Gpa })
+	sortByUserGPADesc(users)
 
 	log.Printf("resolvedUsers: %d, unresolvedUsers: %d, users: %d", len(resolvedUsers), len(unresolvedUsers), len(users))
 	if len(resolvedUsers)+len(unresolvedUsers) != len(users) {
