@@ -73,7 +73,7 @@ func (i *UsersInteractor) UpdateUser(ctx context.Context, user *entity.User, pay
 
 		// update labs
 		if oldLab != nil {
-			if err := updateOldLab(oldLab, entity.NewUserKey(user.UID), user.Gpa); err != nil {
+			if err := updateOldLab(oldLab, entity.NewUserKey(user.UID)); err != nil {
 				i.logger.Println("!!!不整合発生!!!")
 				i.logger.Println(err)
 				return err
@@ -118,7 +118,7 @@ func updateNewLab(lab *entity.Lab, userKey *datastore.Key, gpa float64) {
 	lab.UpdatedAt = lo.ToPtr(time.Now())
 }
 
-func updateOldLab(lab *entity.Lab, userKey *datastore.Key, gpa float64) error {
+func updateOldLab(lab *entity.Lab, userKey *datastore.Key) error {
 	_, index, exist := lo.FindIndexOf(lab.UserGPAs, func(userGPA *entity.UserGPA) bool {
 		return userGPA.UserKey.Equal(userKey)
 	})
