@@ -4,7 +4,7 @@ go 1.22.5
 
 require (
 	cloud.google.com/go/datastore v1.17.1
-	cloud.google.com/go/storage v1.41.0
+	cloud.google.com/go/storage v1.43.0
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/samber/lo v1.45.0
