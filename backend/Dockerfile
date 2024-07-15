@@ -1,4 +1,4 @@
-FROM golang:1.20 AS build
+FROM golang:1.22 AS build
 
 WORKDIR /work
 
@@ -11,7 +11,7 @@ RUN \
     GOARCH=amd64 \
     go build -mod=readonly -o app ./cmd/server
 
-FROM --platform=linux/amd64 ubuntu:22.04
+FROM --platform=linux/amd64 ubuntu:24.04
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
