@@ -4,7 +4,7 @@ import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { UserContext } from '../App';
 import GpaCard from '../components/cards/GpaCard';
-import { FullLayout } from '../components/Layout';
+import { FullLayout } from '../components/layout';
 import LabCard from '../components/cards/LabCard';
 
 export interface Notification {

@@ -11,7 +11,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { ApiUser } from '../apis/models/user';
 import { updateUserLab } from '../apis/user';
 import { UserContext, UserDispatchContext } from '../App';
-import { DefaultLayout } from '../components/Layout';
+import { DefaultLayout } from '../components/layout';
 import { sleep } from '../libs/util';
 import { fetchLabs } from '../apis/labs';
 import { Lab } from '../apis/models/lab';

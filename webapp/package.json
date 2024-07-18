@@ -8,8 +8,8 @@
     "preview": "vite preview",
     "lint": "eslint --cache --fix src/",
     "fmt": "prettier --write src/",
-    "deploy-prod": "bun build --mode production && firebase deploy --only hosting:prod",
-    "deploy-test": "bun build --mode test && firebase deploy --only hosting:test"
+    "deploy-prod": "bun run build --mode production && firebase deploy --only hosting:prod",
+    "deploy-test": "bun run build --mode test && firebase deploy --only hosting:test"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",

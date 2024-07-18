@@ -3,7 +3,7 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import { fetchLabs } from '../apis/labs';
 import { Lab } from '../apis/models/lab';
-import { DefaultLayout } from '../components/Layout';
+import { DefaultLayout } from '../components/layout';
 import { DisplayGpa } from '../components/util';
 import CheckIcon from '@mui/icons-material/Check';
 

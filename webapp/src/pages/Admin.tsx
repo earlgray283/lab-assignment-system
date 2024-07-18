@@ -1,5 +1,5 @@
 import { Button, MenuItem, Select } from '@mui/material';
-import { DefaultLayout } from '../components/Layout';
+import { DefaultLayout } from '../components/layout';
 import React, { useState } from 'react';
 import { finalDecisionDryRun } from '../apis/admin';
 
